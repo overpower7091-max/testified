@@ -42,12 +42,13 @@ function TestifiedLanding() {
     const q = new URLSearchParams({
       name,
       class: selectedClass ? String(selectedClass) : "",
+      via: provider ?? "email",
     }).toString();
     setTimeout(() => {
-      navigate({ to: "/home", search: () => Object.fromEntries(new URLSearchParams(q)) as never });
-      // fallback for search typing
       window.location.href = `/home?${q}`;
     }, 900);
+    // keep navigate imported for future typed nav
+    void navigate;
   };
 
   const handleGoogle = () => {
