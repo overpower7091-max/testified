@@ -1,17 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Sparkles,
-  Download,
-  Wand2,
-  BookOpen,
-  ArrowRight,
-  Twitter,
-  Linkedin,
-  Instagram,
-  Menu,
-  Plus,
-} from "lucide-react";
-import heroFlowers from "@/assets/hero-flowers.png";
+import { useState } from "react";
+import { Mail, ArrowRight, GraduationCap, Check } from "lucide-react";
 
 const VIDEO_URL =
   "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260315_073750_51473149-4350-4920-ae24-c8214286f323.mp4";
@@ -19,27 +8,35 @@ const VIDEO_URL =
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Bloom — Innovating the spirit of bloom AI" },
+      { title: "Testified — Quality MCQ Practice & Live Mock Tests" },
       {
         name: "description",
         content:
-          "Bloom is an AI-powered plant and floral design platform for artistic gallery, AI generation, and 3D structures.",
+          "Testified helps students in classes 6–12 master Science and Math with quality MCQs and live mock tests.",
       },
-      { property: "og:title", content: "Bloom — Innovating the spirit of bloom AI" },
+      { property: "og:title", content: "Testified — MCQ Practice for Science & Math" },
       {
         property: "og:description",
         content:
-          "AI-powered plant and floral design — artistic gallery, generative botanicals, 3D structures.",
+          "Sign up free. Practice MCQs and take live mock tests in Science and Math, classes 6 to 12.",
       },
     ],
   }),
-  component: BloomHero,
+  component: TestifiedLanding,
 });
 
-function BloomHero() {
+type Step = "auth" | "details" | "done";
+
+function TestifiedLanding() {
+  const [step, setStep] = useState<Step>("auth");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [selectedClass, setSelectedClass] = useState<number | null>(null);
+
+  const classes = [6, 7, 8, 9, 10, 11, 12];
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-black text-white">
-      {/* Video background */}
       <video
         className="absolute inset-0 z-0 h-full w-full object-cover"
         src={VIDEO_URL}
@@ -48,195 +45,205 @@ function BloomHero() {
         muted
         playsInline
       />
-      <div className="absolute inset-0 z-0 bg-black/25" />
+      <div className="absolute inset-0 z-0 bg-black/30" />
 
-      {/* Content */}
-      <div className="relative z-10 flex min-h-screen w-full flex-col lg:flex-row">
-        {/* LEFT PANEL */}
-        <section className="relative flex w-full flex-col lg:w-[52%]">
-          <div className="liquid-glass-strong absolute inset-4 rounded-3xl lg:inset-6" />
+      {/* Top brand bar */}
+      <header className="relative z-10 flex items-center justify-between px-6 py-6 lg:px-12">
+        <div className="flex items-center gap-2">
+          <div className="liquid-glass flex h-9 w-9 items-center justify-center rounded-full">
+            <GraduationCap className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-xl font-semibold tracking-tight text-white">
+            testified
+          </span>
+        </div>
+        <span className="liquid-glass hidden rounded-full px-4 py-1.5 text-xs text-white/80 sm:inline-flex">
+          MCQs · Live Mock Tests
+        </span>
+      </header>
 
-          <div className="relative flex min-h-screen flex-col p-8 lg:p-12">
-            {/* Nav */}
-            <nav className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <img
-                  src="/logo.png"
-                  alt="Bloom logo"
-                  width={32}
-                  height={32}
-                  className="h-8 w-8"
-                />
-                <span className="text-2xl font-semibold tracking-tighter text-white">
-                  bloom
-                </span>
-              </div>
-              <button className="liquid-glass flex items-center gap-2 rounded-full px-4 py-2 text-sm text-white/80 transition-transform hover:scale-105 active:scale-95">
-                <Menu className="h-4 w-4" />
-                Menu
-              </button>
-            </nav>
-
-            {/* Hero center */}
-            <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
-              <img
-                src="/logo.png"
-                alt=""
-                width={80}
-                height={80}
-                className="mb-8 h-20 w-20 opacity-90"
-              />
-              <h1 className="max-w-2xl text-6xl leading-[1.02] tracking-[-0.05em] text-white lg:text-7xl">
-                Innovating the{" "}
-                <em className="font-serif not-italic italic text-white/80">
-                  spirit of bloom
-                </em>{" "}
-                AI
-              </h1>
-
-              <button className="liquid-glass-strong mt-10 flex items-center gap-3 rounded-full py-2 pl-6 pr-2 text-sm text-white transition-transform hover:scale-105 active:scale-95">
-                <span>Explore Now</span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15">
-                  <Download className="h-3.5 w-3.5" />
-                </span>
-              </button>
-
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-                {["Artistic Gallery", "AI Generation", "3D Structures"].map((p) => (
+      {/* Main content */}
+      <main className="relative z-10 flex min-h-[calc(100vh-88px)] items-center justify-center px-6 pb-16">
+        <div className="grid w-full max-w-5xl grid-cols-1 items-center gap-10 lg:grid-cols-2">
+          {/* Left: pitch */}
+          <div className="hidden text-left lg:block">
+            <h1 className="text-5xl leading-[1.05] tracking-[-0.04em] text-white lg:text-6xl">
+              Master{" "}
+              <em className="font-serif not-italic italic text-white/80">Science</em>{" "}
+              &{" "}
+              <em className="font-serif not-italic italic text-white/80">Math</em>{" "}
+              one MCQ at a time.
+            </h1>
+            <p className="mt-5 max-w-md text-base text-white/70">
+              Quality question banks and live mock tests built for students of
+              classes 6 to 12.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {["Topic-wise MCQs", "Live Mock Tests", "Instant Analytics"].map(
+                (p) => (
                   <span
                     key={p}
-                    className="liquid-glass rounded-full px-4 py-1.5 text-xs text-white/80"
+                    className="liquid-glass rounded-full px-3 py-1 text-xs text-white/80"
                   >
                     {p}
                   </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Bottom quote */}
-            <div className="mx-auto max-w-lg text-center">
-              <div className="text-xs uppercase tracking-widest text-white/50">
-                VISIONARY DESIGN
-              </div>
-              <p className="mt-4 text-lg text-white/90">
-                <span className="font-display">"We </span>
-                <span className="font-serif italic text-white/80">imagined</span>
-                <span className="font-display"> a </span>
-                <span className="font-serif italic text-white/80">realm</span>
-                <span className="font-display"> with no </span>
-                <span className="font-serif italic text-white/80">ending.</span>
-                <span className="font-display">"</span>
-              </p>
-              <div className="mt-4 flex items-center justify-center gap-3 text-xs tracking-widest text-white/50">
-                <span className="h-px w-10 bg-white/30" />
-                MARCUS AURELIO
-                <span className="h-px w-10 bg-white/30" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* RIGHT PANEL — desktop only */}
-        <aside className="relative hidden w-[48%] flex-col p-6 lg:flex">
-          {/* Top bar */}
-          <div className="flex items-center justify-between">
-            <div className="liquid-glass flex items-center gap-3 rounded-full px-4 py-2">
-              <a
-                href="#"
-                aria-label="Twitter"
-                className="text-white transition-colors hover:text-white/80"
-              >
-                <Twitter className="h-4 w-4" />
-              </a>
-              <a
-                href="#"
-                aria-label="LinkedIn"
-                className="text-white transition-colors hover:text-white/80"
-              >
-                <Linkedin className="h-4 w-4" />
-              </a>
-              <a
-                href="#"
-                aria-label="Instagram"
-                className="text-white transition-colors hover:text-white/80"
-              >
-                <Instagram className="h-4 w-4" />
-              </a>
-              <span className="mx-1 h-4 w-px bg-white/20" />
-              <ArrowRight className="h-4 w-4 text-white/70" />
-            </div>
-
-            <button
-              aria-label="Account"
-              className="liquid-glass flex h-10 w-10 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
-            >
-              <Sparkles className="h-4 w-4 text-white" />
-            </button>
-          </div>
-
-          {/* Community card */}
-          <div className="mt-6 self-end">
-            <div className="liquid-glass w-56 rounded-2xl p-4">
-              <div className="text-sm text-white">Enter our ecosystem</div>
-              <p className="mt-1 text-xs leading-relaxed text-white/60">
-                Join a growing community of botanical designers shaping the future of
-                floral AI.
-              </p>
+                ),
+              )}
             </div>
           </div>
 
-          {/* Bottom feature section */}
-          <div className="mt-auto">
-            <div className="liquid-glass rounded-[2.5rem] p-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="liquid-glass rounded-3xl p-5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
-                    <Wand2 className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="mt-4 text-sm text-white">Processing</div>
-                  <p className="mt-1 text-xs text-white/60">
-                    Real-time generative rendering of botanical forms.
+          {/* Right: auth card */}
+          <div className="mx-auto w-full max-w-md">
+            <div className="liquid-glass-strong rounded-3xl p-6 sm:p-8">
+              {step === "auth" && (
+                <>
+                  <h2 className="text-2xl font-medium tracking-tight text-white">
+                    Get started
+                  </h2>
+                  <p className="mt-1 text-sm text-white/60">
+                    Sign in or create your free Testified account.
                   </p>
-                </div>
-                <div className="liquid-glass rounded-3xl p-5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
-                    <BookOpen className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="mt-4 text-sm text-white">Growth Archive</div>
-                  <p className="mt-1 text-xs text-white/60">
-                    A living library of every species, mood, and season.
-                  </p>
-                </div>
-              </div>
 
-              <div className="liquid-glass mt-3 flex items-center gap-4 rounded-3xl p-3">
-                <img
-                  src={heroFlowers}
-                  alt="Bloom sculpting"
-                  width={96}
-                  height={64}
-                  className="h-16 w-24 shrink-0 rounded-2xl object-cover"
-                  loading="lazy"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm text-white">
-                    Advanced Plant Sculpting
+                  <button
+                    onClick={() => setStep("details")}
+                    className="liquid-glass mt-6 flex w-full items-center justify-center gap-3 rounded-full py-3 text-sm text-white transition-transform hover:scale-[1.02] active:scale-95"
+                  >
+                    <GoogleGlyph />
+                    Continue with Google
+                  </button>
+
+                  <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-widest text-white/40">
+                    <span className="h-px flex-1 bg-white/15" />
+                    or
+                    <span className="h-px flex-1 bg-white/15" />
                   </div>
-                  <p className="truncate text-xs text-white/60">
-                    Shape petals, stems, and light with intuitive control.
+
+                  <label className="block text-xs text-white/60">Email</label>
+                  <div className="liquid-glass mt-2 flex items-center gap-2 rounded-full px-4 py-2.5">
+                    <Mail className="h-4 w-4 text-white/60" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@school.com"
+                      className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none"
+                    />
+                  </div>
+
+                  <button
+                    onClick={() => setStep("details")}
+                    disabled={!email.includes("@")}
+                    className="liquid-glass-strong mt-4 flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm text-white transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
+                  >
+                    Continue with email
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+
+                  <p className="mt-5 text-center text-[11px] text-white/40">
+                    By continuing you agree to our Terms & Privacy Policy.
                   </p>
+                </>
+              )}
+
+              {step === "details" && (
+                <>
+                  <div className="text-xs uppercase tracking-widest text-white/50">
+                    Step 2 of 2
+                  </div>
+                  <h2 className="mt-2 text-2xl font-medium tracking-tight text-white">
+                    Finish your profile
+                  </h2>
+                  <p className="mt-1 text-sm text-white/60">
+                    Tell us your name and class to personalise your MCQs.
+                  </p>
+
+                  <label className="mt-6 block text-xs text-white/60">
+                    Full name
+                  </label>
+                  <div className="liquid-glass mt-2 rounded-full px-4 py-2.5">
+                    <input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Ananya Sharma"
+                      className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none"
+                    />
+                  </div>
+
+                  <label className="mt-5 block text-xs text-white/60">
+                    Select your class
+                  </label>
+                  <div className="mt-2 grid grid-cols-4 gap-2">
+                    {classes.map((c) => {
+                      const active = selectedClass === c;
+                      return (
+                        <button
+                          key={c}
+                          onClick={() => setSelectedClass(c)}
+                          className={`${
+                            active ? "liquid-glass-strong" : "liquid-glass"
+                          } rounded-2xl py-3 text-sm text-white transition-transform hover:scale-105 active:scale-95`}
+                        >
+                          {c}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => setStep("done")}
+                    disabled={!name.trim() || !selectedClass}
+                    className="liquid-glass-strong mt-6 flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm text-white transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
+                  >
+                    Finish signup
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+
+                  <button
+                    onClick={() => setStep("auth")}
+                    className="mt-3 w-full text-center text-xs text-white/50 hover:text-white/80"
+                  >
+                    ← Back
+                  </button>
+                </>
+              )}
+
+              {step === "done" && (
+                <div className="py-4 text-center">
+                  <div className="liquid-glass mx-auto flex h-14 w-14 items-center justify-center rounded-full">
+                    <Check className="h-6 w-6 text-white" />
+                  </div>
+                  <h2 className="mt-5 text-2xl font-medium tracking-tight text-white">
+                    Welcome{name ? `, ${name.split(" ")[0]}` : ""}.
+                  </h2>
+                  <p className="mt-2 text-sm text-white/60">
+                    Class {selectedClass} MCQs in Science and Math are ready for
+                    you.
+                  </p>
+                  <button className="liquid-glass-strong mt-6 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm text-white transition-transform hover:scale-105 active:scale-95">
+                    Start practising
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
                 </div>
-                <button
-                  aria-label="Add"
-                  className="liquid-glass flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
-                >
-                  <Plus className="h-4 w-4 text-white" />
-                </button>
-              </div>
+              )}
             </div>
+
+            <p className="mt-4 text-center text-xs text-white/50 lg:hidden">
+              Quality MCQs & live mock tests · Classes 6–12
+            </p>
           </div>
-        </aside>
-      </div>
+        </div>
+      </main>
     </div>
+  );
+}
+
+function GoogleGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+      <path
+        fill="#EA4335"
+        d="M12 10.2v3.9h5.5c-.2 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.5 14.6 2.5 12 2.5 6.8 2.5 2.6 6.7 2.6 12s4.2 9.5 9.4 9.5c5.4 0 9-3.8 9-9.2 0-.6-.1-1.1-.2-1.6H12z"
+      />
+    </svg>
   );
 }
