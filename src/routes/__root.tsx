@@ -83,6 +83,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "Testified" },
       { property: "og:title", content: "Testified — MCQ Practice for Science & Math" },
       { property: "og:description", content: "Free MCQ practice and live mock tests for WBBSE students of classes 6 to 12." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       {
