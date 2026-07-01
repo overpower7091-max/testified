@@ -78,13 +78,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Testified — MCQ Practice & Live Mock Tests" },
+      { title: "Testified" },
       { name: "description", content: "Testified helps WBBSE students in classes 6–12 master Science and Math with quality MCQs and live mock tests." },
       { name: "author", content: "Testified" },
-      { property: "og:title", content: "Testified — MCQ Practice for Science & Math" },
-      { property: "og:description", content: "Free MCQ practice and live mock tests for WBBSE students of classes 6 to 12." },
+      { property: "og:title", content: "Testified" },
+      { property: "og:description", content: "Testified helps WBBSE students in classes 6–12 master Science and Math with quality MCQs and live mock tests." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Testified" },
+      { name: "twitter:description", content: "Testified helps WBBSE students in classes 6–12 master Science and Math with quality MCQs and live mock tests." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/cd42942c-8b87-4db5-92de-5896bebae877" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/cd42942c-8b87-4db5-92de-5896bebae877" },
     ],
     links: [
       {
