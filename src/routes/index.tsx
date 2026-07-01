@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Mail, ArrowRight, GraduationCap, Check } from "lucide-react";
 
@@ -28,12 +28,36 @@ export const Route = createFileRoute("/")({
 type Step = "auth" | "details" | "done";
 
 function TestifiedLanding() {
+  const navigate = useNavigate();
   const [step, setStep] = useState<Step>("auth");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [provider, setProvider] = useState<"google" | "email" | null>(null);
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
 
   const classes = [6, 7, 8, 9, 10, 11, 12];
+
+  const finish = () => {
+    setStep("done");
+    const q = new URLSearchParams({
+      name,
+      class: selectedClass ? String(selectedClass) : "",
+    }).toString();
+    setTimeout(() => {
+      navigate({ to: "/home", search: () => Object.fromEntries(new URLSearchParams(q)) as never });
+      // fallback for search typing
+      window.location.href = `/home?${q}`;
+    }, 900);
+  };
+
+  const handleGoogle = () => {
+    // Simulated Google sign-in — in a real integration this would open OAuth
+    // and return the user's Google profile. We prefill a friendly name so
+    // the user only needs to confirm their class.
+    setProvider("google");
+    if (!name) setName("Google Student");
+    setStep("details");
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-black text-white">
@@ -105,7 +129,7 @@ function TestifiedLanding() {
                   </p>
 
                   <button
-                    onClick={() => setStep("details")}
+                    onClick={handleGoogle}
                     className="liquid-glass mt-6 flex w-full items-center justify-center gap-3 rounded-full py-3 text-sm text-white transition-transform hover:scale-[1.02] active:scale-95"
                   >
                     <GoogleGlyph />
@@ -131,7 +155,10 @@ function TestifiedLanding() {
                   </div>
 
                   <button
-                    onClick={() => setStep("details")}
+                    onClick={() => {
+                      setProvider("email");
+                      setStep("details");
+                    }}
                     disabled={!email.includes("@")}
                     className="liquid-glass-strong mt-4 flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm text-white transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
                   >
@@ -179,18 +206,29 @@ function TestifiedLanding() {
                         <button
                           key={c}
                           onClick={() => setSelectedClass(c)}
+                          aria-pressed={active}
                           className={`${
-                            active ? "liquid-glass-strong" : "liquid-glass"
-                          } rounded-2xl py-3 text-sm text-white transition-transform hover:scale-105 active:scale-95`}
+                            active
+                              ? "liquid-glass-strong scale-105 bg-white/20 text-white shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.6)]"
+                              : "liquid-glass text-white/80"
+                          } relative rounded-2xl py-3 text-sm transition-all hover:scale-105 active:scale-95`}
                         >
                           {c}
+                          {active && (
+                            <Check className="absolute right-1.5 top-1.5 h-3 w-3 text-white" />
+                          )}
                         </button>
                       );
                     })}
                   </div>
+                  {selectedClass && (
+                    <p className="mt-2 text-xs text-white/60">
+                      Selected: Class {selectedClass}
+                    </p>
+                  )}
 
                   <button
-                    onClick={() => setStep("done")}
+                    onClick={finish}
                     disabled={!name.trim() || !selectedClass}
                     className="liquid-glass-strong mt-6 flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm text-white transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
                   >
@@ -219,7 +257,19 @@ function TestifiedLanding() {
                     Class {selectedClass} MCQs in Science and Math are ready for
                     you.
                   </p>
-                  <button className="liquid-glass-strong mt-6 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm text-white transition-transform hover:scale-105 active:scale-95">
+                  <p className="mt-2 text-xs text-white/50">
+                    Taking you to your home…
+                  </p>
+                  <button
+                    onClick={() => {
+                      const q = new URLSearchParams({
+                        name,
+                        class: selectedClass ? String(selectedClass) : "",
+                      }).toString();
+                      window.location.href = `/home?${q}`;
+                    }}
+                    className="liquid-glass-strong mt-6 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm text-white transition-transform hover:scale-105 active:scale-95"
+                  >
                     Start practising
                     <ArrowRight className="h-4 w-4" />
                   </button>
