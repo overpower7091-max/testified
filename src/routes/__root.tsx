@@ -78,14 +78,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { title: "Testified — MCQ Practice & Live Mock Tests" },
+      { name: "description", content: "Testified helps WBBSE students in classes 6–12 master Science and Math with quality MCQs and live mock tests." },
+      { name: "author", content: "Testified" },
+      { property: "og:title", content: "Testified — MCQ Practice for Science & Math" },
+      { property: "og:description", content: "Free MCQ practice and live mock tests for WBBSE students of classes 6 to 12." },
     ],
     links: [
       {
