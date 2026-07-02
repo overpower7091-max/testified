@@ -92,7 +92,7 @@ function StudentProfile() {
 
   return (
     <div className="min-h-screen">
-      <AppHeader isAdmin back={{ to: "/admin/class/$level" as any }} />
+      <AppHeader isAdmin back={{ to: "/admin" }} />
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 py-6 space-y-6">
         <div className="glass-strong rounded-3xl p-6 sm:p-8">
           <div className="flex items-start gap-4">
