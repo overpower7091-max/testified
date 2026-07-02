@@ -99,10 +99,13 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          banned_at: string | null
+          banned_reason: string | null
           class: Database["public"]["Enums"]["class_level"] | null
           created_at: string
           full_name: string | null
           id: string
+          is_banned: boolean
           onboarding_completed: boolean
           streak: number
           updated_at: string
@@ -110,10 +113,13 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_reason?: string | null
           class?: Database["public"]["Enums"]["class_level"] | null
           created_at?: string
           full_name?: string | null
           id: string
+          is_banned?: boolean
           onboarding_completed?: boolean
           streak?: number
           updated_at?: string
@@ -121,10 +127,13 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_reason?: string | null
           class?: Database["public"]["Enums"]["class_level"] | null
           created_at?: string
           full_name?: string | null
           id?: string
+          is_banned?: boolean
           onboarding_completed?: boolean
           streak?: number
           updated_at?: string
@@ -216,6 +225,64 @@ export type Database = {
             columns: ["question_bank_id"]
             isOneToOne: false
             referencedRelation: "question_banks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_attempts: {
+        Row: {
+          chapter_id: string | null
+          created_at: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          selected_index: number | null
+          subject_id: string | null
+          time_seconds: number
+          user_id: string
+        }
+        Insert: {
+          chapter_id?: string | null
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id: string
+          selected_index?: number | null
+          subject_id?: string | null
+          time_seconds?: number
+          user_id: string
+        }
+        Update: {
+          chapter_id?: string | null
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          selected_index?: number | null
+          subject_id?: string | null
+          time_seconds?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_attempts_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_attempts_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_attempts_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
             referencedColumns: ["id"]
           },
         ]
