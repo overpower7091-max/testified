@@ -51,7 +51,7 @@ function Home() {
       setIsAdmin(!!roles?.some((r: any) => r.role === "admin"));
 
       // Subjects for user's class
-      const { data: cls } = await supabase.from("classes").select("id").eq("level", p.class).maybeSingle();
+      const { data: cls } = p.class ? await supabase.from("classes").select("id").eq("level", p.class).maybeSingle() : { data: null };
       if (cls) {
         const { data: subs } = await supabase.from("subjects")
           .select("id, name").eq("class_id", cls.id).order("position").limit(4);
