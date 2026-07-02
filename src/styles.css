@@ -5,6 +5,7 @@
 @import "@fontsource/poppins/400.css";
 @import "@fontsource/poppins/500.css";
 @import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
 @import "@fontsource/source-serif-4/400-italic.css";
 @import "@fontsource/source-serif-4/500-italic.css";
 
@@ -39,115 +40,110 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-2: var(--brand-2);
+  --color-brand-3: var(--brand-3);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
 }
 
 :root {
-  --radius: 1rem;
-  --background: hsl(0 0% 4%);
-  --foreground: hsl(0 0% 100%);
-  --card: hsl(0 0% 8%);
-  --card-foreground: hsl(0 0% 100%);
-  --popover: hsl(0 0% 8%);
-  --popover-foreground: hsl(0 0% 100%);
-  --primary: hsl(0 0% 100%);
-  --primary-foreground: hsl(0 0% 4%);
-  --secondary: hsl(0 0% 15%);
+  --radius: 1.25rem;
+  --background: hsl(220 30% 97%);
+  --foreground: hsl(222 25% 12%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222 25% 12%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222 25% 12%);
+  --primary: hsl(221 83% 53%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(217 91% 60%);
   --secondary-foreground: hsl(0 0% 100%);
-  --muted: hsl(0 0% 15%);
-  --muted-foreground: hsl(0 0% 65%);
-  --accent: hsl(0 0% 20%);
+  --muted: hsl(220 20% 94%);
+  --muted-foreground: hsl(220 10% 45%);
+  --accent: hsl(199 89% 60%);
   --accent-foreground: hsl(0 0% 100%);
-  --destructive: hsl(0 0% 50%);
+  --destructive: hsl(0 84% 60%);
   --destructive-foreground: hsl(0 0% 100%);
-  --border: hsl(0 0% 20%);
-  --input: hsl(0 0% 20%);
-  --ring: hsl(0 0% 80%);
+  --border: hsl(220 20% 88%);
+  --input: hsl(220 20% 88%);
+  --ring: hsl(221 83% 53%);
+  --brand: hsl(221 83% 53%);
+  --brand-2: hsl(217 91% 60%);
+  --brand-3: hsl(199 89% 60%);
+  --success: hsl(142 71% 45%);
+  --warning: hsl(38 92% 50%);
+  --danger: hsl(0 84% 60%);
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
+  html, body {
+    min-height: 100%;
+  }
   body {
-    background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-weight: 400;
+    background-color: var(--color-background);
+    background-image:
+      radial-gradient(1000px 600px at -10% -10%, hsl(217 91% 60% / 0.25), transparent 60%),
+      radial-gradient(900px 700px at 110% 10%, hsl(199 89% 60% / 0.22), transparent 55%),
+      radial-gradient(1200px 800px at 50% 120%, hsl(221 83% 53% / 0.18), transparent 60%);
+    background-attachment: fixed;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
 }
 
 @layer components {
-  .liquid-glass {
-    background: rgba(255, 255, 255, 0.01);
-    background-blend-mode: luminosity;
-    backdrop-filter: blur(4px);
-    border: none;
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
-    position: relative;
-    overflow: hidden;
-  }
-  .liquid-glass::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    padding: 1.4px;
-    border-radius: inherit;
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.45) 0%,
-      rgba(255, 255, 255, 0.15) 20%,
-      transparent 40%,
-      transparent 60%,
-      rgba(255, 255, 255, 0.15) 80%,
-      rgba(255, 255, 255, 0.45) 100%
-    );
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  .liquid-glass-strong {
-    background: rgba(255, 255, 255, 0.01);
-    background-blend-mode: luminosity;
-    backdrop-filter: blur(50px);
-    border: none;
+  .glass {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
     box-shadow:
-      4px 4px 4px rgba(0, 0, 0, 0.05),
-      inset 0 1px 1px rgba(255, 255, 255, 0.15);
-    position: relative;
-    overflow: hidden;
+      0 1px 0 rgba(255, 255, 255, 0.8) inset,
+      0 20px 40px -20px rgba(30, 64, 175, 0.18);
   }
-  .liquid-glass-strong::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    padding: 1.4px;
-    border-radius: inherit;
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.5) 0%,
-      rgba(255, 255, 255, 0.2) 20%,
-      transparent 40%,
-      transparent 60%,
-      rgba(255, 255, 255, 0.2) 80%,
-      rgba(255, 255, 255, 0.5) 100%
-    );
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(30px) saturate(160%);
+    -webkit-backdrop-filter: blur(30px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.9) inset,
+      0 30px 60px -25px rgba(30, 64, 175, 0.22);
   }
+  .glass-tint {
+    background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(56,189,248,0.08));
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.6);
+  }
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(221 83% 53%), hsl(199 89% 55%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .btn-gradient {
+    background: linear-gradient(135deg, hsl(221 83% 53%), hsl(217 91% 60%));
+    color: white;
+    box-shadow: 0 10px 25px -10px hsl(221 83% 53% / 0.6);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .btn-gradient:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px -10px hsl(221 83% 53% / 0.7);
+  }
+
+  /* Legacy classes kept as no-op shims so any remaining usages don't break */
+  .liquid-glass { background: rgba(255,255,255,0.55); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.6); border-radius: inherit; }
+  .liquid-glass-strong { background: rgba(255,255,255,0.7); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.7); border-radius: inherit; }
 }
