@@ -9,13 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SuspendedRouteImport } from './routes/suspended'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSubjectsRouteImport } from './routes/_authenticated/subjects'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedMockRouteImport } from './routes/_authenticated/mock'
+import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedSubjectIdRouteImport } from './routes/_authenticated/subject.$id'
+import { Route as AuthenticatedPracticeChapterIdRouteImport } from './routes/_authenticated/practice.$chapterId'
+import { Route as AuthenticatedAdminStudentIdRouteImport } from './routes/_authenticated/admin.student.$id'
+import { Route as AuthenticatedAdminClassLevelRouteImport } from './routes/_authenticated/admin.class.$level'
 
+const SuspendedRoute = SuspendedRouteImport.update({
+  id: '/suspended',
+  path: '/suspended',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -35,30 +51,105 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSubjectsRoute = AuthenticatedSubjectsRouteImport.update({
+  id: '/subjects',
+  path: '/subjects',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMockRoute = AuthenticatedMockRouteImport.update({
+  id: '/mock',
+  path: '/mock',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLeaderboardRoute =
+  AuthenticatedLeaderboardRouteImport.update({
+    id: '/leaderboard',
+    path: '/leaderboard',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedHistoryRoute = AuthenticatedHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedSubjectIdRoute = AuthenticatedSubjectIdRouteImport.update({
+  id: '/subject/$id',
+  path: '/subject/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPracticeChapterIdRoute =
+  AuthenticatedPracticeChapterIdRouteImport.update({
+    id: '/practice/$chapterId',
+    path: '/practice/$chapterId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminStudentIdRoute =
+  AuthenticatedAdminStudentIdRouteImport.update({
+    id: '/student/$id',
+    path: '/student/$id',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminClassLevelRoute =
+  AuthenticatedAdminClassLevelRouteImport.update({
+    id: '/class/$level',
+    path: '/class/$level',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/suspended': typeof SuspendedRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/history': typeof AuthenticatedHistoryRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/leaderboard': typeof AuthenticatedLeaderboardRoute
+  '/mock': typeof AuthenticatedMockRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/subjects': typeof AuthenticatedSubjectsRoute
+  '/practice/$chapterId': typeof AuthenticatedPracticeChapterIdRoute
+  '/subject/$id': typeof AuthenticatedSubjectIdRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/class/$level': typeof AuthenticatedAdminClassLevelRoute
+  '/admin/student/$id': typeof AuthenticatedAdminStudentIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/suspended': typeof SuspendedRoute
+  '/history': typeof AuthenticatedHistoryRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/leaderboard': typeof AuthenticatedLeaderboardRoute
+  '/mock': typeof AuthenticatedMockRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/subjects': typeof AuthenticatedSubjectsRoute
+  '/practice/$chapterId': typeof AuthenticatedPracticeChapterIdRoute
+  '/subject/$id': typeof AuthenticatedSubjectIdRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/class/$level': typeof AuthenticatedAdminClassLevelRoute
+  '/admin/student/$id': typeof AuthenticatedAdminStudentIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -66,22 +157,75 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/suspended': typeof SuspendedRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
+  '/_authenticated/mock': typeof AuthenticatedMockRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/subjects': typeof AuthenticatedSubjectsRoute
+  '/_authenticated/practice/$chapterId': typeof AuthenticatedPracticeChapterIdRoute
+  '/_authenticated/subject/$id': typeof AuthenticatedSubjectIdRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/class/$level': typeof AuthenticatedAdminClassLevelRoute
+  '/_authenticated/admin/student/$id': typeof AuthenticatedAdminStudentIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/reset-password' | '/home' | '/onboarding'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/suspended'
+    | '/admin'
+    | '/history'
+    | '/home'
+    | '/leaderboard'
+    | '/mock'
+    | '/onboarding'
+    | '/subjects'
+    | '/practice/$chapterId'
+    | '/subject/$id'
+    | '/admin/'
+    | '/admin/class/$level'
+    | '/admin/student/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/reset-password' | '/home' | '/onboarding'
+  to:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/suspended'
+    | '/history'
+    | '/home'
+    | '/leaderboard'
+    | '/mock'
+    | '/onboarding'
+    | '/subjects'
+    | '/practice/$chapterId'
+    | '/subject/$id'
+    | '/admin'
+    | '/admin/class/$level'
+    | '/admin/student/$id'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/suspended'
+    | '/_authenticated/admin'
+    | '/_authenticated/history'
     | '/_authenticated/home'
+    | '/_authenticated/leaderboard'
+    | '/_authenticated/mock'
     | '/_authenticated/onboarding'
+    | '/_authenticated/subjects'
+    | '/_authenticated/practice/$chapterId'
+    | '/_authenticated/subject/$id'
+    | '/_authenticated/admin/'
+    | '/_authenticated/admin/class/$level'
+    | '/_authenticated/admin/student/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -89,10 +233,18 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SuspendedRoute: typeof SuspendedRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/suspended': {
+      id: '/suspended'
+      path: '/suspended'
+      fullPath: '/suspended'
+      preLoaderRoute: typeof SuspendedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -121,11 +273,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/subjects': {
+      id: '/_authenticated/subjects'
+      path: '/subjects'
+      fullPath: '/subjects'
+      preLoaderRoute: typeof AuthenticatedSubjectsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mock': {
+      id: '/_authenticated/mock'
+      path: '/mock'
+      fullPath: '/mock'
+      preLoaderRoute: typeof AuthenticatedMockRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/leaderboard': {
+      id: '/_authenticated/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof AuthenticatedLeaderboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/home': {
@@ -135,17 +308,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/history': {
+      id: '/_authenticated/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof AuthenticatedHistoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/subject/$id': {
+      id: '/_authenticated/subject/$id'
+      path: '/subject/$id'
+      fullPath: '/subject/$id'
+      preLoaderRoute: typeof AuthenticatedSubjectIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/practice/$chapterId': {
+      id: '/_authenticated/practice/$chapterId'
+      path: '/practice/$chapterId'
+      fullPath: '/practice/$chapterId'
+      preLoaderRoute: typeof AuthenticatedPracticeChapterIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/student/$id': {
+      id: '/_authenticated/admin/student/$id'
+      path: '/student/$id'
+      fullPath: '/admin/student/$id'
+      preLoaderRoute: typeof AuthenticatedAdminStudentIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/class/$level': {
+      id: '/_authenticated/admin/class/$level'
+      path: '/class/$level'
+      fullPath: '/admin/class/$level'
+      preLoaderRoute: typeof AuthenticatedAdminClassLevelRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminClassLevelRoute: typeof AuthenticatedAdminClassLevelRoute
+  AuthenticatedAdminStudentIdRoute: typeof AuthenticatedAdminStudentIdRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+  AuthenticatedAdminClassLevelRoute: AuthenticatedAdminClassLevelRoute,
+  AuthenticatedAdminStudentIdRoute: AuthenticatedAdminStudentIdRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
+  AuthenticatedMockRoute: typeof AuthenticatedMockRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedSubjectsRoute: typeof AuthenticatedSubjectsRoute
+  AuthenticatedPracticeChapterIdRoute: typeof AuthenticatedPracticeChapterIdRoute
+  AuthenticatedSubjectIdRoute: typeof AuthenticatedSubjectIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
+  AuthenticatedMockRoute: AuthenticatedMockRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedSubjectsRoute: AuthenticatedSubjectsRoute,
+  AuthenticatedPracticeChapterIdRoute: AuthenticatedPracticeChapterIdRoute,
+  AuthenticatedSubjectIdRoute: AuthenticatedSubjectIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -156,6 +407,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SuspendedRoute: SuspendedRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

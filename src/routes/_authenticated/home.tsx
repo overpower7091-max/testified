@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  GraduationCap, Flame, Trophy, Target, Sparkles, BookOpen,
-  History, Radio, ClipboardList, Brain, LogOut, Loader2, ShieldCheck,
-  ArrowRight, Calculator, Atom, FlaskConical, Leaf, TrendingUp, Clock,
+  Flame, Trophy, Target, Sparkles, BookOpen,
+  History, Radio, ClipboardList, Brain, Loader2,
+  ArrowRight, Calculator, Atom, FlaskConical, Leaf, TrendingUp, Clock, CheckCircle2, XCircle,
 } from "lucide-react";
+import { AppHeader } from "@/components/app-header";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -12,84 +13,95 @@ export const Route = createFileRoute("/_authenticated/home")({
   component: Home,
 });
 
-type Profile = {
-  full_name: string | null;
-  class: string | null;
-  xp: number;
-  streak: number;
-  onboarding_completed: boolean;
+const SUBJECT_ICONS: Record<string, any> = {
+  Mathematics: Calculator, "Physical Science": Atom, Physics: Atom,
+  "Life Science": Leaf, Chemistry: FlaskConical,
+};
+const SUBJECT_TINTS: Record<string, string> = {
+  Mathematics: "from-blue-500/20 to-blue-400/10",
+  "Physical Science": "from-sky-500/20 to-cyan-400/10",
+  Physics: "from-sky-500/20 to-cyan-400/10",
+  "Life Science": "from-emerald-500/20 to-teal-400/10",
+  Chemistry: "from-indigo-500/20 to-blue-400/10",
 };
 
 function Home() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [attempts, setAttempts] = useState<any[]>([]);
+  const [rank, setRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       const { data: userRes } = await supabase.auth.getUser();
       if (!userRes.user) return;
+      const uid = userRes.user.id;
+
       const [{ data: p }, { data: roles }] = await Promise.all([
-        supabase.from("profiles")
-          .select("full_name, class, xp, streak, onboarding_completed")
-          .eq("id", userRes.user.id).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", userRes.user.id),
+        supabase.from("profiles").select("full_name, class, xp, streak, onboarding_completed").eq("id", uid).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", uid),
       ]);
-      if (!p?.onboarding_completed) {
-        navigate({ to: "/onboarding", replace: true });
-        return;
+
+      if (!p?.onboarding_completed) { navigate({ to: "/onboarding", replace: true }); return; }
+
+      setProfile(p);
+      setIsAdmin(!!roles?.some((r: any) => r.role === "admin"));
+
+      // Subjects for user's class
+      const { data: cls } = await supabase.from("classes").select("id").eq("level", p.class).maybeSingle();
+      if (cls) {
+        const { data: subs } = await supabase.from("subjects")
+          .select("id, name").eq("class_id", cls.id).order("position").limit(4);
+        const enriched = await Promise.all((subs ?? []).map(async (s: any) => {
+          const [{ count: chapCount }, { data: att }] = await Promise.all([
+            supabase.from("chapters").select("*", { count: "exact", head: true }).eq("subject_id", s.id),
+            supabase.from("quiz_attempts").select("is_correct", { count: "exact" }).eq("user_id", uid).eq("subject_id", s.id),
+          ]);
+          const total = att?.length ?? 0;
+          const correct = att?.filter((a: any) => a.is_correct).length ?? 0;
+          return { ...s, chapters: chapCount ?? 0, attempts: total, accuracy: total ? Math.round((correct / total) * 100) : 0 };
+        }));
+        setSubjects(enriched);
       }
-      setProfile(p as Profile);
-      setIsAdmin(!!roles?.some((r) => r.role === "admin"));
+
+      // Recent attempts
+      const { data: recent } = await supabase.from("quiz_attempts")
+        .select("id, is_correct, created_at, time_seconds, question:questions(question)")
+        .eq("user_id", uid).order("created_at", { ascending: false }).limit(5);
+      setAttempts(recent ?? []);
+
+      // Rank within class (approx by XP)
+      if (p.class) {
+        const { data: leaderboard } = await supabase.from("profiles")
+          .select("id, xp").eq("class", p.class).order("xp", { ascending: false });
+        const pos = (leaderboard ?? []).findIndex((x: any) => x.id === uid);
+        setRank(pos >= 0 ? pos + 1 : null);
+      }
+
       setLoading(false);
     })();
   }, [navigate]);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  };
-
   if (loading || !profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
 
   const firstName = (profile.full_name || "Student").split(" ")[0];
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayAttempts = attempts.filter((a) => a.created_at.slice(0, 10) === todayKey);
   const dailyGoal = 20;
-  const dailyDone = 0;
-  const goalPct = Math.round((dailyDone / dailyGoal) * 100);
+  const dailyDone = todayAttempts.length;
+  const goalPct = Math.min(100, Math.round((dailyDone / dailyGoal) * 100));
+  const totalCorrect = attempts.filter((a) => a.is_correct).length;
+  const accuracy = attempts.length ? Math.round((totalCorrect / attempts.length) * 100) : 0;
+  const studyMin = Math.round(todayAttempts.reduce((s, a) => s + (a.time_seconds || 0), 0) / 60);
 
   return (
     <div className="min-h-screen w-full text-foreground">
-      {/* Header */}
-      <header className="sticky top-0 z-30 px-4 sm:px-6 lg:px-10 pt-4">
-        <div className="glass mx-auto flex max-w-7xl items-center justify-between rounded-2xl px-4 py-2.5">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl btn-gradient">
-              <GraduationCap className="h-4.5 w-4.5 text-white" />
-            </div>
-            <div className="leading-tight">
-              <div className="text-base font-semibold tracking-tight">testified</div>
-              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">WBBSE</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {isAdmin && (
-              <Link to="/home" className="hidden sm:inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground">
-                <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Admin
-              </Link>
-            )}
-            <button onClick={signOut} className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs font-medium hover:text-primary transition-colors">
-              <LogOut className="h-3.5 w-3.5" /> Sign out
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader isAdmin={isAdmin} />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 pb-16 pt-6">
         {/* Hero */}
@@ -101,36 +113,35 @@ function Home() {
               <h1 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight">
                 Hi {firstName}, ready to <span className="gradient-text">level up?</span>
               </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Class {profile.class} · WBBSE · Let's crush today's goal.
-              </p>
+              <p className="mt-2 text-sm text-muted-foreground">Class {profile.class} · WBBSE · Let's crush today's goal.</p>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <button className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium">
+                <Link to="/subjects" className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium">
                   Start practising <ArrowRight className="h-4 w-4" />
-                </button>
-                <button className="glass inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium hover:text-primary transition-colors">
+                </Link>
+                <Link to="/mock" className="glass inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium hover:text-primary transition-colors">
                   <Radio className="h-4 w-4 text-primary" /> Join live mock
-                </button>
+                </Link>
               </div>
 
               <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <Stat icon={<Trophy className="h-4 w-4" />} label="Rank" value="—" />
+                <Stat icon={<Trophy className="h-4 w-4" />} label="Rank" value={rank ? `#${rank}` : "—"} />
                 <Stat icon={<Sparkles className="h-4 w-4" />} label="XP" value={String(profile.xp)} />
                 <Stat icon={<Flame className="h-4 w-4" />} label="Streak" value={`${profile.streak}d`} />
-                <Stat icon={<Target className="h-4 w-4" />} label="Accuracy" value="—" />
+                <Stat icon={<Target className="h-4 w-4" />} label="Accuracy" value={attempts.length ? `${accuracy}%` : "—"} />
               </div>
             </div>
           </div>
 
-          {/* Daily goal ring */}
           <div className="glass-strong rounded-3xl p-6 flex flex-col">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-medium">Today's goal</div>
                 <div className="mt-1 text-lg font-semibold">Daily practice</div>
               </div>
-              <div className="rounded-full glass-tint px-2.5 py-1 text-[10px] uppercase tracking-wider text-primary font-semibold">Fresh</div>
+              <div className="rounded-full glass-tint px-2.5 py-1 text-[10px] uppercase tracking-wider text-primary font-semibold">
+                {dailyDone >= dailyGoal ? "Done" : "Fresh"}
+              </div>
             </div>
 
             <div className="mt-4 flex items-center gap-5">
@@ -138,42 +149,58 @@ function Home() {
               <div className="flex-1 min-w-0">
                 <div className="text-3xl font-semibold tracking-tight">{dailyDone}<span className="text-muted-foreground text-lg">/{dailyGoal}</span></div>
                 <div className="text-xs text-muted-foreground mt-1">MCQs solved today</div>
-                <button className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+                <Link to="/subjects" className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
                   Start now <ArrowRight className="h-3.5 w-3.5" />
-                </button>
+                </Link>
               </div>
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-2 text-xs">
-              <MiniStat icon={<Clock className="h-3.5 w-3.5" />} label="Study time" value="0m" />
-              <MiniStat icon={<TrendingUp className="h-3.5 w-3.5" />} label="This week" value="0%" />
+              <MiniStat icon={<Clock className="h-3.5 w-3.5" />} label="Study time" value={`${studyMin}m`} />
+              <MiniStat icon={<TrendingUp className="h-3.5 w-3.5" />} label="This week" value={attempts.length ? `${accuracy}%` : "0%"} />
             </div>
           </div>
         </section>
 
-        {/* Continue learning + Subjects */}
+        {/* Subjects + Quick actions */}
         <section className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="glass rounded-3xl p-6 lg:col-span-2">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Your subjects</h2>
-              <button className="text-xs font-medium text-primary hover:underline">View all</button>
+              <Link to="/subjects" className="text-xs font-medium text-primary hover:underline">View all</Link>
             </div>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <SubjectCard icon={<Calculator className="h-5 w-5" />} name="Mathematics" chapters="0 / 12" tint="from-blue-500/20 to-blue-400/10" />
-              <SubjectCard icon={<Atom className="h-5 w-5" />} name="Physical Science" chapters="0 / 10" tint="from-sky-500/20 to-cyan-400/10" />
-              <SubjectCard icon={<Leaf className="h-5 w-5" />} name="Life Science" chapters="0 / 9" tint="from-emerald-500/20 to-teal-400/10" />
-              <SubjectCard icon={<FlaskConical className="h-5 w-5" />} name="Chemistry" chapters="0 / 8" tint="from-indigo-500/20 to-blue-400/10" />
+              {subjects.length === 0 ? (
+                <div className="col-span-full text-sm text-muted-foreground">No subjects yet.</div>
+              ) : subjects.map((s) => {
+                const Icon = SUBJECT_ICONS[s.name] ?? BookOpen;
+                const tint = SUBJECT_TINTS[s.name] ?? "from-blue-500/10 to-blue-400/5";
+                return (
+                  <Link key={s.id} to="/subject/$id" params={{ id: s.id }}
+                    className={`group text-left rounded-2xl p-4 bg-gradient-to-br ${tint} border border-white/60 hover:scale-[1.02] transition-transform`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/80 text-primary shadow-sm"><Icon className="h-5 w-5" /></div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                    <div className="mt-4 text-sm font-semibold">{s.name}</div>
+                    <div className="text-xs text-muted-foreground">{s.chapters} chapters · {s.attempts} attempts</div>
+                    <div className="mt-3 h-1.5 w-full rounded-full bg-white/60 overflow-hidden">
+                      <div className="h-full btn-gradient rounded-full" style={{ width: `${s.accuracy || 6}%` }} />
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
 
           <div className="glass rounded-3xl p-6">
             <h2 className="text-lg font-semibold">Quick actions</h2>
             <div className="mt-4 space-y-2.5">
-              <QuickAction icon={<ClipboardList className="h-4.5 w-4.5" />} title="Daily Quiz" desc="Today's challenge" />
-              <QuickAction icon={<Radio className="h-4.5 w-4.5" />} title="Live Quiz" desc="Scheduled quizzes" />
-              <QuickAction icon={<Brain className="h-4.5 w-4.5" />} title="AI Doubt Solver" desc="Ask, snap, solve" />
-              <QuickAction icon={<Trophy className="h-4.5 w-4.5" />} title="Leaderboard" desc="Compete daily" />
-              <QuickAction icon={<History className="h-4.5 w-4.5" />} title="Quiz History" desc="Review attempts" />
+              <QuickAction to="/subjects" icon={<ClipboardList className="h-4 w-4" />} title="Daily Quiz" desc="Today's challenge" />
+              <QuickAction to="/mock" icon={<Radio className="h-4 w-4" />} title="Live Quiz" desc="Scheduled mocks" />
+              <QuickAction to="/mock" icon={<Brain className="h-4 w-4" />} title="AI Doubt Solver" desc="Coming soon" />
+              <QuickAction to="/leaderboard" icon={<Trophy className="h-4 w-4" />} title="Leaderboard" desc="Compete in your class" />
+              <QuickAction to="/history" icon={<History className="h-4 w-4" />} title="Quiz History" desc="Review attempts" />
             </div>
           </div>
         </section>
@@ -183,24 +210,36 @@ function Home() {
           <div className="glass rounded-3xl p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Recent activity</h2>
-              <span className="text-xs text-muted-foreground">Last 7 days</span>
+              <Link to="/history" className="text-xs text-primary hover:underline">View all</Link>
             </div>
-            <div className="mt-4 flex flex-col items-center justify-center gap-2 py-10 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl glass-tint">
-                <BookOpen className="h-6 w-6 text-primary" />
+            {attempts.length === 0 ? (
+              <div className="mt-4 flex flex-col items-center justify-center gap-2 py-10 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl glass-tint">
+                  <BookOpen className="h-6 w-6 text-primary" />
+                </div>
+                <p className="text-sm font-medium">No activity yet</p>
+                <p className="text-xs text-muted-foreground max-w-sm">
+                  Once you start solving MCQs and mock tests, your attempts appear here with insights.
+                </p>
+                <Link to="/subjects" className="mt-3 btn-gradient rounded-full px-5 py-2 text-sm font-medium">Start your first quiz</Link>
               </div>
-              <p className="text-sm font-medium">No activity yet</p>
-              <p className="text-xs text-muted-foreground max-w-sm">
-                Once you start solving MCQs and mock tests, your recent attempts will appear here with insights.
-              </p>
-              <button className="mt-3 btn-gradient rounded-full px-5 py-2 text-sm font-medium">Start your first quiz</button>
-            </div>
+            ) : (
+              <div className="mt-4 divide-y divide-white/5">
+                {attempts.map((a) => (
+                  <div key={a.id} className="flex items-center gap-3 py-3">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center ${a.is_correct ? "bg-emerald-500/15 text-emerald-500" : "bg-red-500/15 text-red-500"}`}>
+                      {a.is_correct ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm truncate">{a.question?.question ?? "Question"}</div>
+                      <div className="text-[11px] text-muted-foreground">{new Date(a.created_at).toLocaleString()}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
-
-        <p className="mt-8 text-center text-xs text-muted-foreground">
-          Phase 1 online · Auth · Profiles · Roles · Quiz engine ships next.
-        </p>
       </main>
     </div>
   );
@@ -217,7 +256,6 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
     </div>
   );
 }
-
 function MiniStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="glass-tint rounded-xl px-3 py-2 flex items-center justify-between">
@@ -226,22 +264,14 @@ function MiniStat({ icon, label, value }: { icon: React.ReactNode; label: string
     </div>
   );
 }
-
 function ProgressRing({ value }: { value: number }) {
-  const size = 96;
-  const stroke = 10;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
+  const size = 96, stroke = 10, r = (size - stroke) / 2, c = 2 * Math.PI * r;
   const offset = c - (value / 100) * c;
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size/2} cy={size/2} r={r} stroke="hsl(220 20% 88%)" strokeWidth={stroke} fill="none" />
-        <circle
-          cx={size/2} cy={size/2} r={r}
-          stroke="url(#grad)" strokeWidth={stroke} fill="none"
-          strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset}
-        />
+        <circle cx={size/2} cy={size/2} r={r} stroke="url(#grad)" strokeWidth={stroke} fill="none" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} />
         <defs>
           <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="hsl(221 83% 53%)" />
@@ -255,32 +285,15 @@ function ProgressRing({ value }: { value: number }) {
     </div>
   );
 }
-
-function SubjectCard({ icon, name, chapters, tint }: { icon: React.ReactNode; name: string; chapters: string; tint: string }) {
+function QuickAction({ to, icon, title, desc }: { to: string; icon: React.ReactNode; title: string; desc: string }) {
   return (
-    <button className={`group text-left rounded-2xl p-4 bg-gradient-to-br ${tint} border border-white/60 hover:scale-[1.02] transition-transform`}>
-      <div className="flex items-start justify-between">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/80 text-primary shadow-sm">{icon}</div>
-        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-      </div>
-      <div className="mt-4 text-sm font-semibold">{name}</div>
-      <div className="text-xs text-muted-foreground">{chapters} chapters</div>
-      <div className="mt-3 h-1.5 w-full rounded-full bg-white/60 overflow-hidden">
-        <div className="h-full w-[8%] btn-gradient rounded-full" />
-      </div>
-    </button>
-  );
-}
-
-function QuickAction({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
-  return (
-    <button className="w-full glass rounded-2xl px-3 py-2.5 flex items-center gap-3 hover:scale-[1.01] transition-transform text-left">
+    <Link to={to} className="w-full glass rounded-2xl px-3 py-2.5 flex items-center gap-3 hover:scale-[1.01] transition-transform text-left">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl glass-tint text-primary">{icon}</div>
       <div className="min-w-0 flex-1">
         <div className="text-sm font-medium truncate">{title}</div>
         <div className="text-xs text-muted-foreground truncate">{desc}</div>
       </div>
       <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-    </button>
+    </Link>
   );
 }
