@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Users, ArrowRight, Loader2 } from "lucide-react";
+import { Users, ArrowRight, Loader2, FileText } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -46,6 +46,11 @@ function AdminHome() {
             <Metric label="Active" value={loading ? "…" : String(total - banned)} />
             <Metric label="Suspended" value={loading ? "…" : String(banned)} />
             <Metric label="Classes" value="6–12" />
+          </div>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link to="/admin/content" className="btn-gradient rounded-full px-4 py-2 text-sm font-medium inline-flex items-center gap-2">
+              <FileText className="h-4 w-4" /> Manage content & MCQs
+            </Link>
           </div>
         </div>
 
