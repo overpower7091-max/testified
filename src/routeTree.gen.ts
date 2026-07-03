@@ -24,8 +24,12 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedSubjectIdRouteImport } from './routes/_authenticated/subject.$id'
 import { Route as AuthenticatedPracticeChapterIdRouteImport } from './routes/_authenticated/practice.$chapterId'
+import { Route as AuthenticatedAdminContentIndexRouteImport } from './routes/_authenticated/admin.content.index'
+import { Route as AuthenticatedPracticeTopicTopicIdRouteImport } from './routes/_authenticated/practice.topic.$topicId'
 import { Route as AuthenticatedAdminStudentIdRouteImport } from './routes/_authenticated/admin.student.$id'
 import { Route as AuthenticatedAdminClassLevelRouteImport } from './routes/_authenticated/admin.class.$level'
+import { Route as AuthenticatedAdminContentTopicIdRouteImport } from './routes/_authenticated/admin.content.topic.$id'
+import { Route as AuthenticatedAdminContentSubjectIdRouteImport } from './routes/_authenticated/admin.content.subject.$id'
 
 const SuspendedRoute = SuspendedRouteImport.update({
   id: '/suspended',
@@ -103,6 +107,18 @@ const AuthenticatedPracticeChapterIdRoute =
     path: '/practice/$chapterId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminContentIndexRoute =
+  AuthenticatedAdminContentIndexRouteImport.update({
+    id: '/content/',
+    path: '/content/',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedPracticeTopicTopicIdRoute =
+  AuthenticatedPracticeTopicTopicIdRouteImport.update({
+    id: '/practice/topic/$topicId',
+    path: '/practice/topic/$topicId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminStudentIdRoute =
   AuthenticatedAdminStudentIdRouteImport.update({
     id: '/student/$id',
@@ -113,6 +129,18 @@ const AuthenticatedAdminClassLevelRoute =
   AuthenticatedAdminClassLevelRouteImport.update({
     id: '/class/$level',
     path: '/class/$level',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminContentTopicIdRoute =
+  AuthenticatedAdminContentTopicIdRouteImport.update({
+    id: '/content/topic/$id',
+    path: '/content/topic/$id',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminContentSubjectIdRoute =
+  AuthenticatedAdminContentSubjectIdRouteImport.update({
+    id: '/content/subject/$id',
+    path: '/content/subject/$id',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 
@@ -133,6 +161,10 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/class/$level': typeof AuthenticatedAdminClassLevelRoute
   '/admin/student/$id': typeof AuthenticatedAdminStudentIdRoute
+  '/practice/topic/$topicId': typeof AuthenticatedPracticeTopicTopicIdRoute
+  '/admin/content/': typeof AuthenticatedAdminContentIndexRoute
+  '/admin/content/subject/$id': typeof AuthenticatedAdminContentSubjectIdRoute
+  '/admin/content/topic/$id': typeof AuthenticatedAdminContentTopicIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -150,6 +182,10 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/class/$level': typeof AuthenticatedAdminClassLevelRoute
   '/admin/student/$id': typeof AuthenticatedAdminStudentIdRoute
+  '/practice/topic/$topicId': typeof AuthenticatedPracticeTopicTopicIdRoute
+  '/admin/content': typeof AuthenticatedAdminContentIndexRoute
+  '/admin/content/subject/$id': typeof AuthenticatedAdminContentSubjectIdRoute
+  '/admin/content/topic/$id': typeof AuthenticatedAdminContentTopicIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -170,6 +206,10 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/class/$level': typeof AuthenticatedAdminClassLevelRoute
   '/_authenticated/admin/student/$id': typeof AuthenticatedAdminStudentIdRoute
+  '/_authenticated/practice/topic/$topicId': typeof AuthenticatedPracticeTopicTopicIdRoute
+  '/_authenticated/admin/content/': typeof AuthenticatedAdminContentIndexRoute
+  '/_authenticated/admin/content/subject/$id': typeof AuthenticatedAdminContentSubjectIdRoute
+  '/_authenticated/admin/content/topic/$id': typeof AuthenticatedAdminContentTopicIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -190,6 +230,10 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/class/$level'
     | '/admin/student/$id'
+    | '/practice/topic/$topicId'
+    | '/admin/content/'
+    | '/admin/content/subject/$id'
+    | '/admin/content/topic/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -207,6 +251,10 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/class/$level'
     | '/admin/student/$id'
+    | '/practice/topic/$topicId'
+    | '/admin/content'
+    | '/admin/content/subject/$id'
+    | '/admin/content/topic/$id'
   id:
     | '__root__'
     | '/'
@@ -226,6 +274,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/admin/class/$level'
     | '/_authenticated/admin/student/$id'
+    | '/_authenticated/practice/topic/$topicId'
+    | '/_authenticated/admin/content/'
+    | '/_authenticated/admin/content/subject/$id'
+    | '/_authenticated/admin/content/topic/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -343,6 +395,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPracticeChapterIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/content/': {
+      id: '/_authenticated/admin/content/'
+      path: '/content'
+      fullPath: '/admin/content/'
+      preLoaderRoute: typeof AuthenticatedAdminContentIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/practice/topic/$topicId': {
+      id: '/_authenticated/practice/topic/$topicId'
+      path: '/practice/topic/$topicId'
+      fullPath: '/practice/topic/$topicId'
+      preLoaderRoute: typeof AuthenticatedPracticeTopicTopicIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/student/$id': {
       id: '/_authenticated/admin/student/$id'
       path: '/student/$id'
@@ -357,6 +423,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminClassLevelRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/content/topic/$id': {
+      id: '/_authenticated/admin/content/topic/$id'
+      path: '/content/topic/$id'
+      fullPath: '/admin/content/topic/$id'
+      preLoaderRoute: typeof AuthenticatedAdminContentTopicIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/content/subject/$id': {
+      id: '/_authenticated/admin/content/subject/$id'
+      path: '/content/subject/$id'
+      fullPath: '/admin/content/subject/$id'
+      preLoaderRoute: typeof AuthenticatedAdminContentSubjectIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
@@ -364,12 +444,19 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminClassLevelRoute: typeof AuthenticatedAdminClassLevelRoute
   AuthenticatedAdminStudentIdRoute: typeof AuthenticatedAdminStudentIdRoute
+  AuthenticatedAdminContentIndexRoute: typeof AuthenticatedAdminContentIndexRoute
+  AuthenticatedAdminContentSubjectIdRoute: typeof AuthenticatedAdminContentSubjectIdRoute
+  AuthenticatedAdminContentTopicIdRoute: typeof AuthenticatedAdminContentTopicIdRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminClassLevelRoute: AuthenticatedAdminClassLevelRoute,
   AuthenticatedAdminStudentIdRoute: AuthenticatedAdminStudentIdRoute,
+  AuthenticatedAdminContentIndexRoute: AuthenticatedAdminContentIndexRoute,
+  AuthenticatedAdminContentSubjectIdRoute:
+    AuthenticatedAdminContentSubjectIdRoute,
+  AuthenticatedAdminContentTopicIdRoute: AuthenticatedAdminContentTopicIdRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -385,6 +472,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSubjectsRoute: typeof AuthenticatedSubjectsRoute
   AuthenticatedPracticeChapterIdRoute: typeof AuthenticatedPracticeChapterIdRoute
   AuthenticatedSubjectIdRoute: typeof AuthenticatedSubjectIdRoute
+  AuthenticatedPracticeTopicTopicIdRoute: typeof AuthenticatedPracticeTopicTopicIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -397,6 +485,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSubjectsRoute: AuthenticatedSubjectsRoute,
   AuthenticatedPracticeChapterIdRoute: AuthenticatedPracticeChapterIdRoute,
   AuthenticatedSubjectIdRoute: AuthenticatedSubjectIdRoute,
+  AuthenticatedPracticeTopicTopicIdRoute:
+    AuthenticatedPracticeTopicTopicIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
