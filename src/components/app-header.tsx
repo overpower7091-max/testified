@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { GraduationCap, LogOut, ShieldCheck, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-export function AppHeader({ isAdmin, back }: { isAdmin?: boolean; back?: { to: string; label?: string } }) {
+export function AppHeader({ isAdmin, back }: { isAdmin?: boolean; back?: { to: string; label?: string; params?: Record<string, string> } }) {
   const navigate = useNavigate();
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -13,7 +13,7 @@ export function AppHeader({ isAdmin, back }: { isAdmin?: boolean; back?: { to: s
       <div className="glass mx-auto flex max-w-7xl items-center justify-between rounded-2xl px-4 py-2.5">
         <div className="flex items-center gap-3">
           {back && (
-            <Link to={back.to} className="glass rounded-full h-8 w-8 inline-flex items-center justify-center hover:text-primary" aria-label="Back">
+            <Link to={back.to as any} params={back.params as any} className="glass rounded-full h-8 w-8 inline-flex items-center justify-center hover:text-primary" aria-label="Back">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           )}
