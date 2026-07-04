@@ -85,7 +85,8 @@ function TopicPractice() {
     if (userId) {
       await supabase.from("quiz_attempts").insert({
         user_id: userId, question_id: q.id, chapter_id: chapterId,
-        subject_id: subjectId, selected_index: selected, is_correct: isCorrect, time_seconds: elapsed,
+        subject_id: subjectId, topic_id: topicId, session_id: sessionId,
+        selected_index: selected, is_correct: isCorrect, time_seconds: elapsed,
       });
       if (isCorrect) {
         const { data: p } = await supabase.from("profiles").select("xp").eq("id", userId).maybeSingle();
