@@ -28,6 +28,7 @@ function TopicPractice() {
   const [elapsed, setElapsed] = useState(0);
   const [done, setDone] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string>(() => (globalThis.crypto?.randomUUID?.() ?? String(Date.now())));
 
   const loadQuestions = async () => {
     const { data: t } = await supabase.from("topics").select("name, chapter_id").eq("id", topicId).maybeSingle();
