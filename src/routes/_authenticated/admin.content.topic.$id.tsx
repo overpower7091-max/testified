@@ -17,14 +17,21 @@ type Question = { id: string; question: string; options: string[]; correct_answe
 
 const EMPTY = { question: "", options: ["", "", "", ""], correct: 0, explanation: "", difficulty: "medium" };
 
+type Draft = { question: string; options: string[]; correct: number; explanation: string; difficulty: string; _keep: boolean; _open: boolean };
+
 function ManageTopic() {
   const { id: topicId } = Route.useParams();
+  const parseFn = useServerFn(parseMCQs);
   const [topic, setTopic] = useState<any>(null);
   const [bankId, setBankId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<typeof EMPTY>({ ...EMPTY, options: [...EMPTY.options] });
   const [saving, setSaving] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [parsing, setParsing] = useState(false);
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [importing, setImporting] = useState(false);
 
   const load = async () => {
     setLoading(true);
