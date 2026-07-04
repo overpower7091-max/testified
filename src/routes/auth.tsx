@@ -83,7 +83,7 @@ function AuthPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-black text-white">
       <video className="absolute inset-0 z-0 h-full w-full object-cover" src={VIDEO_URL} autoPlay loop muted playsInline />
-      <div className="absolute inset-0 z-0 bg-black/40" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
 
       <header className="relative z-10 flex items-center justify-between px-6 py-6 lg:px-12">
         <Link to="/" className="flex items-center gap-2">
