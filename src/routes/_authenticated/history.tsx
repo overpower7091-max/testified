@@ -30,7 +30,7 @@ function History() {
       const { data: userRes } = await supabase.auth.getUser();
       if (!userRes.user) return;
       const { data } = await supabase.from("quiz_attempts")
-        .select("id, is_correct, time_seconds, created_at, session_id, topic_id, subject_id, question:questions(topic:topics(id, name), question_bank:question_banks(topic:topics(id, name))), subject:subjects(name)")
+        .select("id, is_correct, time_seconds, created_at, session_id, topic_id, subject_id, question:questions(question_bank:question_banks(topic:topics(id, name))), subject:subjects(name)")
         .eq("user_id", userRes.user.id)
         .order("created_at", { ascending: false })
         .limit(500);
