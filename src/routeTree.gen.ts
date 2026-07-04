@@ -26,6 +26,7 @@ import { Route as AuthenticatedSubjectIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedPracticeChapterIdRouteImport } from './routes/_authenticated/practice.$chapterId'
 import { Route as AuthenticatedAdminContentIndexRouteImport } from './routes/_authenticated/admin.content.index'
 import { Route as AuthenticatedPracticeTopicTopicIdRouteImport } from './routes/_authenticated/practice.topic.$topicId'
+import { Route as AuthenticatedHistorySessionSessionIdRouteImport } from './routes/_authenticated/history.session.$sessionId'
 import { Route as AuthenticatedAdminStudentIdRouteImport } from './routes/_authenticated/admin.student.$id'
 import { Route as AuthenticatedAdminClassLevelRouteImport } from './routes/_authenticated/admin.class.$level'
 import { Route as AuthenticatedAdminContentTopicIdRouteImport } from './routes/_authenticated/admin.content.topic.$id'
@@ -119,6 +120,12 @@ const AuthenticatedPracticeTopicTopicIdRoute =
     path: '/practice/topic/$topicId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHistorySessionSessionIdRoute =
+  AuthenticatedHistorySessionSessionIdRouteImport.update({
+    id: '/session/$sessionId',
+    path: '/session/$sessionId',
+    getParentRoute: () => AuthenticatedHistoryRoute,
+  } as any)
 const AuthenticatedAdminStudentIdRoute =
   AuthenticatedAdminStudentIdRouteImport.update({
     id: '/student/$id',
@@ -150,7 +157,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/suspended': typeof SuspendedRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/history': typeof AuthenticatedHistoryRoute
+  '/history': typeof AuthenticatedHistoryRouteWithChildren
   '/home': typeof AuthenticatedHomeRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/mock': typeof AuthenticatedMockRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/class/$level': typeof AuthenticatedAdminClassLevelRoute
   '/admin/student/$id': typeof AuthenticatedAdminStudentIdRoute
+  '/history/session/$sessionId': typeof AuthenticatedHistorySessionSessionIdRoute
   '/practice/topic/$topicId': typeof AuthenticatedPracticeTopicTopicIdRoute
   '/admin/content/': typeof AuthenticatedAdminContentIndexRoute
   '/admin/content/subject/$id': typeof AuthenticatedAdminContentSubjectIdRoute
@@ -171,7 +179,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/suspended': typeof SuspendedRoute
-  '/history': typeof AuthenticatedHistoryRoute
+  '/history': typeof AuthenticatedHistoryRouteWithChildren
   '/home': typeof AuthenticatedHomeRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/mock': typeof AuthenticatedMockRoute
@@ -182,6 +190,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/class/$level': typeof AuthenticatedAdminClassLevelRoute
   '/admin/student/$id': typeof AuthenticatedAdminStudentIdRoute
+  '/history/session/$sessionId': typeof AuthenticatedHistorySessionSessionIdRoute
   '/practice/topic/$topicId': typeof AuthenticatedPracticeTopicTopicIdRoute
   '/admin/content': typeof AuthenticatedAdminContentIndexRoute
   '/admin/content/subject/$id': typeof AuthenticatedAdminContentSubjectIdRoute
@@ -195,7 +204,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/suspended': typeof SuspendedRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/_authenticated/history': typeof AuthenticatedHistoryRoute
+  '/_authenticated/history': typeof AuthenticatedHistoryRouteWithChildren
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/mock': typeof AuthenticatedMockRoute
@@ -206,6 +215,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/class/$level': typeof AuthenticatedAdminClassLevelRoute
   '/_authenticated/admin/student/$id': typeof AuthenticatedAdminStudentIdRoute
+  '/_authenticated/history/session/$sessionId': typeof AuthenticatedHistorySessionSessionIdRoute
   '/_authenticated/practice/topic/$topicId': typeof AuthenticatedPracticeTopicTopicIdRoute
   '/_authenticated/admin/content/': typeof AuthenticatedAdminContentIndexRoute
   '/_authenticated/admin/content/subject/$id': typeof AuthenticatedAdminContentSubjectIdRoute
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/class/$level'
     | '/admin/student/$id'
+    | '/history/session/$sessionId'
     | '/practice/topic/$topicId'
     | '/admin/content/'
     | '/admin/content/subject/$id'
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/class/$level'
     | '/admin/student/$id'
+    | '/history/session/$sessionId'
     | '/practice/topic/$topicId'
     | '/admin/content'
     | '/admin/content/subject/$id'
@@ -274,6 +286,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/admin/class/$level'
     | '/_authenticated/admin/student/$id'
+    | '/_authenticated/history/session/$sessionId'
     | '/_authenticated/practice/topic/$topicId'
     | '/_authenticated/admin/content/'
     | '/_authenticated/admin/content/subject/$id'
@@ -409,6 +422,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPracticeTopicTopicIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/history/session/$sessionId': {
+      id: '/_authenticated/history/session/$sessionId'
+      path: '/session/$sessionId'
+      fullPath: '/history/session/$sessionId'
+      preLoaderRoute: typeof AuthenticatedHistorySessionSessionIdRouteImport
+      parentRoute: typeof AuthenticatedHistoryRoute
+    }
     '/_authenticated/admin/student/$id': {
       id: '/_authenticated/admin/student/$id'
       path: '/student/$id'
@@ -462,9 +482,21 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedHistoryRouteChildren {
+  AuthenticatedHistorySessionSessionIdRoute: typeof AuthenticatedHistorySessionSessionIdRoute
+}
+
+const AuthenticatedHistoryRouteChildren: AuthenticatedHistoryRouteChildren = {
+  AuthenticatedHistorySessionSessionIdRoute:
+    AuthenticatedHistorySessionSessionIdRoute,
+}
+
+const AuthenticatedHistoryRouteWithChildren =
+  AuthenticatedHistoryRoute._addFileChildren(AuthenticatedHistoryRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
-  AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
+  AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRouteWithChildren
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedMockRoute: typeof AuthenticatedMockRoute
@@ -477,7 +509,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
-  AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
+  AuthenticatedHistoryRoute: AuthenticatedHistoryRouteWithChildren,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedMockRoute: AuthenticatedMockRoute,

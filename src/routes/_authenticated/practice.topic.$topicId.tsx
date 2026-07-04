@@ -28,6 +28,7 @@ function TopicPractice() {
   const [elapsed, setElapsed] = useState(0);
   const [done, setDone] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string>(() => (globalThis.crypto?.randomUUID?.() ?? String(Date.now())));
 
   const loadQuestions = async () => {
     const { data: t } = await supabase.from("topics").select("name, chapter_id").eq("id", topicId).maybeSingle();
@@ -84,7 +85,8 @@ function TopicPractice() {
     if (userId) {
       await supabase.from("quiz_attempts").insert({
         user_id: userId, question_id: q.id, chapter_id: chapterId,
-        subject_id: subjectId, selected_index: selected, is_correct: isCorrect, time_seconds: elapsed,
+        subject_id: subjectId, topic_id: topicId, session_id: sessionId,
+        selected_index: selected, is_correct: isCorrect, time_seconds: elapsed,
       });
       if (isCorrect) {
         const { data: p } = await supabase.from("profiles").select("xp").eq("id", userId).maybeSingle();
@@ -101,6 +103,7 @@ function TopicPractice() {
   const restart = async () => {
     setLoading(true);
     setIdx(0); setSelected(null); setRevealed(false); setAnswers([]); setDone(false);
+    setSessionId(globalThis.crypto?.randomUUID?.() ?? String(Date.now()));
     await loadQuestions();
     setStartedAt(Date.now()); setElapsed(0);
     setLoading(false);
@@ -127,6 +130,13 @@ function TopicPractice() {
 
   if (done) {
     const acc = Math.round((correctCount / questions.length) * 100);
+    const feedback =
+      acc === 100 ? { title: "Flawless!", subtitle: "Perfect score — you nailed every question.", tint: "text-emerald-400" } :
+      acc >= 80  ? { title: "Excellent!", subtitle: "Strong grasp of this topic — keep it up.", tint: "text-emerald-400" } :
+      acc >= 60  ? { title: "Good effort", subtitle: "Solid foundation. Review the misses and try again.", tint: "text-sky-400" } :
+      acc >= 40  ? { title: "Keep pushing", subtitle: "You're getting there — revise the concepts and retake.", tint: "text-amber-400" } :
+      acc >= 20  ? { title: "Needs practice", subtitle: "Go through the chapter once more, then attempt again.", tint: "text-orange-400" } :
+                   { title: "Don't give up", subtitle: "Every expert started here. Study the explanations and retry.", tint: "text-rose-400" };
     return (
       <div className="min-h-screen">
         <AppHeader />
@@ -135,8 +145,9 @@ function TopicPractice() {
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full glass-tint text-primary">
               <Trophy className="h-10 w-10" />
             </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight">Great work!</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{topic?.name}</p>
+            <h1 className={`mt-4 text-3xl font-semibold tracking-tight ${feedback.tint}`}>{feedback.title}</h1>
+            <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto">{feedback.subtitle}</p>
+            <p className="mt-3 text-xs text-muted-foreground">{topic?.name}</p>
             <div className="mt-6 grid grid-cols-3 gap-2">
               <div className="glass rounded-2xl p-3"><div className="text-xs text-muted-foreground">Score</div><div className="text-xl font-semibold gradient-text">{correctCount}/{questions.length}</div></div>
               <div className="glass rounded-2xl p-3"><div className="text-xs text-muted-foreground">Accuracy</div><div className="text-xl font-semibold gradient-text">{acc}%</div></div>
@@ -144,6 +155,7 @@ function TopicPractice() {
             </div>
             <div className="mt-6 flex flex-wrap gap-2 justify-center">
               <button onClick={restart} className="glass rounded-full px-5 py-2 text-sm font-medium hover:text-primary inline-flex items-center gap-2"><RotateCcw className="h-4 w-4" /> New 10 questions</button>
+              <Link to="/history/session/$sessionId" params={{ sessionId }} className="glass rounded-full px-5 py-2 text-sm font-medium hover:text-primary inline-flex items-center gap-2">Review answers</Link>
               {subjectId && (
                 <Link to="/subject/$id" params={{ id: subjectId }} className="btn-gradient rounded-full px-5 py-2 text-sm font-medium inline-flex items-center gap-2">More subtopics <ArrowRight className="h-4 w-4" /></Link>
               )}

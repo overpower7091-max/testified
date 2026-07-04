@@ -237,8 +237,10 @@ export type Database = {
           is_correct: boolean
           question_id: string
           selected_index: number | null
+          session_id: string | null
           subject_id: string | null
           time_seconds: number
+          topic_id: string | null
           user_id: string
         }
         Insert: {
@@ -248,8 +250,10 @@ export type Database = {
           is_correct?: boolean
           question_id: string
           selected_index?: number | null
+          session_id?: string | null
           subject_id?: string | null
           time_seconds?: number
+          topic_id?: string | null
           user_id: string
         }
         Update: {
@@ -259,8 +263,10 @@ export type Database = {
           is_correct?: boolean
           question_id?: string
           selected_index?: number | null
+          session_id?: string | null
           subject_id?: string | null
           time_seconds?: number
+          topic_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -283,6 +289,13 @@ export type Database = {
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_attempts_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
             referencedColumns: ["id"]
           },
         ]
