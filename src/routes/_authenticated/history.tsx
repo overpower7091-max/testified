@@ -37,7 +37,7 @@ function History() {
 
       const grouped = new Map<string, Session>();
       for (const r of data ?? []) {
-        const topicFromQ = (r as any).question?.topic ?? (r as any).question?.question_bank?.topic;
+        const topicFromQ = (r as any).question?.question_bank?.topic;
         const topicId = (r as any).topic_id ?? topicFromQ?.id ?? null;
         const topicName = topicFromQ?.name ?? "Practice quiz";
         const subjectName = (r as any).subject?.name ?? "";
