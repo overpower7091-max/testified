@@ -103,6 +103,7 @@ function TopicPractice() {
   const restart = async () => {
     setLoading(true);
     setIdx(0); setSelected(null); setRevealed(false); setAnswers([]); setDone(false);
+    setSessionId(globalThis.crypto?.randomUUID?.() ?? String(Date.now()));
     await loadQuestions();
     setStartedAt(Date.now()); setElapsed(0);
     setLoading(false);
