@@ -26,7 +26,7 @@ import { Route as AuthenticatedSubjectIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedPracticeChapterIdRouteImport } from './routes/_authenticated/practice.$chapterId'
 import { Route as AuthenticatedAdminContentIndexRouteImport } from './routes/_authenticated/admin.content.index'
 import { Route as AuthenticatedPracticeTopicTopicIdRouteImport } from './routes/_authenticated/practice.topic.$topicId'
-import { Route as AuthenticatedHistorySessionSessionIdRouteImport } from './routes/_authenticated/history.session.$sessionId'
+import { Route as AuthenticatedHistorySessionSessionIdRouteImport } from './routes/_authenticated/history_.session.$sessionId'
 import { Route as AuthenticatedAdminStudentIdRouteImport } from './routes/_authenticated/admin.student.$id'
 import { Route as AuthenticatedAdminClassLevelRouteImport } from './routes/_authenticated/admin.class.$level'
 import { Route as AuthenticatedAdminContentTopicIdRouteImport } from './routes/_authenticated/admin.content.topic.$id'
@@ -122,9 +122,9 @@ const AuthenticatedPracticeTopicTopicIdRoute =
   } as any)
 const AuthenticatedHistorySessionSessionIdRoute =
   AuthenticatedHistorySessionSessionIdRouteImport.update({
-    id: '/session/$sessionId',
-    path: '/session/$sessionId',
-    getParentRoute: () => AuthenticatedHistoryRoute,
+    id: '/history_/session/$sessionId',
+    path: '/history/session/$sessionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminStudentIdRoute =
   AuthenticatedAdminStudentIdRouteImport.update({
@@ -157,7 +157,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/suspended': typeof SuspendedRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/history': typeof AuthenticatedHistoryRouteWithChildren
+  '/history': typeof AuthenticatedHistoryRoute
   '/home': typeof AuthenticatedHomeRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/mock': typeof AuthenticatedMockRoute
@@ -179,7 +179,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/suspended': typeof SuspendedRoute
-  '/history': typeof AuthenticatedHistoryRouteWithChildren
+  '/history': typeof AuthenticatedHistoryRoute
   '/home': typeof AuthenticatedHomeRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/mock': typeof AuthenticatedMockRoute
@@ -204,7 +204,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/suspended': typeof SuspendedRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/_authenticated/history': typeof AuthenticatedHistoryRouteWithChildren
+  '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/mock': typeof AuthenticatedMockRoute
@@ -215,7 +215,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/class/$level': typeof AuthenticatedAdminClassLevelRoute
   '/_authenticated/admin/student/$id': typeof AuthenticatedAdminStudentIdRoute
-  '/_authenticated/history/session/$sessionId': typeof AuthenticatedHistorySessionSessionIdRoute
+  '/_authenticated/history_/session/$sessionId': typeof AuthenticatedHistorySessionSessionIdRoute
   '/_authenticated/practice/topic/$topicId': typeof AuthenticatedPracticeTopicTopicIdRoute
   '/_authenticated/admin/content/': typeof AuthenticatedAdminContentIndexRoute
   '/_authenticated/admin/content/subject/$id': typeof AuthenticatedAdminContentSubjectIdRoute
@@ -286,7 +286,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/admin/class/$level'
     | '/_authenticated/admin/student/$id'
-    | '/_authenticated/history/session/$sessionId'
+    | '/_authenticated/history_/session/$sessionId'
     | '/_authenticated/practice/topic/$topicId'
     | '/_authenticated/admin/content/'
     | '/_authenticated/admin/content/subject/$id'
@@ -422,12 +422,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPracticeTopicTopicIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/history/session/$sessionId': {
-      id: '/_authenticated/history/session/$sessionId'
-      path: '/session/$sessionId'
+    '/_authenticated/history_/session/$sessionId': {
+      id: '/_authenticated/history_/session/$sessionId'
+      path: '/history/session/$sessionId'
       fullPath: '/history/session/$sessionId'
       preLoaderRoute: typeof AuthenticatedHistorySessionSessionIdRouteImport
-      parentRoute: typeof AuthenticatedHistoryRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/student/$id': {
       id: '/_authenticated/admin/student/$id'
@@ -482,21 +482,9 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
-interface AuthenticatedHistoryRouteChildren {
-  AuthenticatedHistorySessionSessionIdRoute: typeof AuthenticatedHistorySessionSessionIdRoute
-}
-
-const AuthenticatedHistoryRouteChildren: AuthenticatedHistoryRouteChildren = {
-  AuthenticatedHistorySessionSessionIdRoute:
-    AuthenticatedHistorySessionSessionIdRoute,
-}
-
-const AuthenticatedHistoryRouteWithChildren =
-  AuthenticatedHistoryRoute._addFileChildren(AuthenticatedHistoryRouteChildren)
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
-  AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRouteWithChildren
+  AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedMockRoute: typeof AuthenticatedMockRoute
@@ -504,12 +492,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSubjectsRoute: typeof AuthenticatedSubjectsRoute
   AuthenticatedPracticeChapterIdRoute: typeof AuthenticatedPracticeChapterIdRoute
   AuthenticatedSubjectIdRoute: typeof AuthenticatedSubjectIdRoute
+  AuthenticatedHistorySessionSessionIdRoute: typeof AuthenticatedHistorySessionSessionIdRoute
   AuthenticatedPracticeTopicTopicIdRoute: typeof AuthenticatedPracticeTopicTopicIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
-  AuthenticatedHistoryRoute: AuthenticatedHistoryRouteWithChildren,
+  AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedMockRoute: AuthenticatedMockRoute,
@@ -517,6 +506,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSubjectsRoute: AuthenticatedSubjectsRoute,
   AuthenticatedPracticeChapterIdRoute: AuthenticatedPracticeChapterIdRoute,
   AuthenticatedSubjectIdRoute: AuthenticatedSubjectIdRoute,
+  AuthenticatedHistorySessionSessionIdRoute:
+    AuthenticatedHistorySessionSessionIdRoute,
   AuthenticatedPracticeTopicTopicIdRoute:
     AuthenticatedPracticeTopicTopicIdRoute,
 }
@@ -534,13 +525,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
