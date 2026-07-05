@@ -224,18 +224,35 @@ function Home() {
                 <Link to="/subjects" className="mt-3 btn-gradient rounded-full px-5 py-2 text-sm font-medium">Start your first quiz</Link>
               </div>
             ) : (
-              <div className="mt-4 divide-y divide-white/5">
-                {attempts.map((a) => (
-                  <div key={a.id} className="flex items-center gap-3 py-3">
-                    <div className={`h-8 w-8 rounded-full flex items-center justify-center ${a.is_correct ? "bg-emerald-500/15 text-emerald-500" : "bg-red-500/15 text-red-500"}`}>
-                      {a.is_correct ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+              <div className="mt-4 space-y-2">
+                {groupSessions(attempts).slice(0, 5).map((s) => {
+                  const acc = Math.round((s.correct / s.total) * 100);
+                  const accTint = acc >= 80 ? "text-emerald-400" : acc >= 50 ? "text-sky-400" : "text-rose-400";
+                  const started = new Date(s.startedAt);
+                  const inner = (
+                    <div className="glass rounded-2xl p-3 flex items-center gap-3 hover:scale-[1.005] transition-transform">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl glass-tint text-primary shrink-0">
+                        <History className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold truncate">{s.topicName}</div>
+                        <div className="text-[11px] text-muted-foreground truncate">
+                          {s.subjectName ? `${s.subjectName} · ` : ""}{started.toLocaleDateString()} · {started.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </div>
+                        <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
+                          <span className={`inline-flex items-center gap-1 font-semibold ${accTint}`}><Target className="h-3 w-3" /> {s.correct}/{s.total} · {acc}%</span>
+                          <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {formatDuration(s.seconds)}</span>
+                        </div>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm truncate">{a.question?.question ?? "Question"}</div>
-                      <div className="text-[11px] text-muted-foreground">{new Date(a.created_at).toLocaleString()}</div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                  return s.sessionId ? (
+                    <Link key={s.key} to="/history/session/$sessionId" params={{ sessionId: s.sessionId }}>{inner}</Link>
+                  ) : (
+                    <div key={s.key} className="opacity-70 cursor-default">{inner}</div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -243,6 +260,33 @@ function Home() {
       </main>
     </div>
   );
+}
+
+function groupSessions(rows: any[]) {
+  const map = new Map<string, { key: string; sessionId: string | null; topicName: string; subjectName: string; total: number; correct: number; seconds: number; startedAt: string }>();
+  for (const r of rows) {
+    const topic = r.question?.question_bank?.topic;
+    const topicName = topic?.name ?? "Practice quiz";
+    const subjectName = r.subject?.name ?? "";
+    const key = r.session_id ? String(r.session_id) : `legacy:${r.topic_id ?? "x"}:${r.created_at.slice(0, 16)}`;
+    const ex = map.get(key);
+    if (ex) {
+      ex.total += 1;
+      ex.correct += r.is_correct ? 1 : 0;
+      ex.seconds += r.time_seconds || 0;
+      if (r.created_at < ex.startedAt) ex.startedAt = r.created_at;
+    } else {
+      map.set(key, { key, sessionId: r.session_id ?? null, topicName, subjectName, total: 1, correct: r.is_correct ? 1 : 0, seconds: r.time_seconds || 0, startedAt: r.created_at });
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1));
+}
+
+function formatDuration(sec: number) {
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}m ${s}s`;
 }
 
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
