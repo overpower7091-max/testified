@@ -46,7 +46,7 @@ function Profile() {
       const uid = userRes.user.id;
       const [{ data: p }, { data: att }] = await Promise.all([
         supabase.from("profiles")
-          .select("full_name, avatar_url, class, board, xp, streak")
+          .select("full_name, avatar_url, class, xp, streak")
           .eq("id", uid).maybeSingle(),
         supabase.from("quiz_attempts")
           .select("id, is_correct, time_seconds, created_at, session_id, topic_id, subject_id, subject:subjects(id, name)")
