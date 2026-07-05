@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSubjectsRouteImport } from './routes/_authenticated/subjects'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedMockRouteImport } from './routes/_authenticated/mock'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
@@ -59,6 +60,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedSubjectsRoute = AuthenticatedSubjectsRouteImport.update({
   id: '/subjects',
   path: '/subjects',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/mock': typeof AuthenticatedMockRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/practice/$chapterId': typeof AuthenticatedPracticeChapterIdRoute
   '/subject/$id': typeof AuthenticatedSubjectIdRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/mock': typeof AuthenticatedMockRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/practice/$chapterId': typeof AuthenticatedPracticeChapterIdRoute
   '/subject/$id': typeof AuthenticatedSubjectIdRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/mock': typeof AuthenticatedMockRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/subjects': typeof AuthenticatedSubjectsRoute
   '/_authenticated/practice/$chapterId': typeof AuthenticatedPracticeChapterIdRoute
   '/_authenticated/subject/$id': typeof AuthenticatedSubjectIdRoute
@@ -234,6 +243,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/mock'
     | '/onboarding'
+    | '/profile'
     | '/subjects'
     | '/practice/$chapterId'
     | '/subject/$id'
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/mock'
     | '/onboarding'
+    | '/profile'
     | '/subjects'
     | '/practice/$chapterId'
     | '/subject/$id'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '/_authenticated/leaderboard'
     | '/_authenticated/mock'
     | '/_authenticated/onboarding'
+    | '/_authenticated/profile'
     | '/_authenticated/subjects'
     | '/_authenticated/practice/$chapterId'
     | '/_authenticated/subject/$id'
@@ -343,6 +355,13 @@ declare module '@tanstack/react-router' {
       path: '/subjects'
       fullPath: '/subjects'
       preLoaderRoute: typeof AuthenticatedSubjectsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/onboarding': {
@@ -489,6 +508,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedMockRoute: typeof AuthenticatedMockRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSubjectsRoute: typeof AuthenticatedSubjectsRoute
   AuthenticatedPracticeChapterIdRoute: typeof AuthenticatedPracticeChapterIdRoute
   AuthenticatedSubjectIdRoute: typeof AuthenticatedSubjectIdRoute
@@ -503,6 +523,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedMockRoute: AuthenticatedMockRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSubjectsRoute: AuthenticatedSubjectsRoute,
   AuthenticatedPracticeChapterIdRoute: AuthenticatedPracticeChapterIdRoute,
   AuthenticatedSubjectIdRoute: AuthenticatedSubjectIdRoute,
