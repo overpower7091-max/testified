@@ -33,6 +33,9 @@ export function AppHeader({ isAdmin, back }: { isAdmin?: boolean; back?: { to: s
               <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Admin
             </Link>
           )}
+          <Link to="/profile" className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs font-medium hover:text-primary transition-colors" aria-label="Profile">
+            <User className="h-3.5 w-3.5 text-primary" /> <span className="hidden sm:inline">Profile</span>
+          </Link>
           <button onClick={signOut} className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs font-medium hover:text-primary transition-colors">
             <LogOut className="h-3.5 w-3.5" /> Sign out
           </button>
