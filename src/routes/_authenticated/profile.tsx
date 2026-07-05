@@ -94,7 +94,7 @@ function Profile() {
             <div className="flex-1 min-w-0">
               <div className="text-xs uppercase tracking-[0.2em] text-primary/80 font-medium">Profile</div>
               <h1 className="mt-1 text-3xl sm:text-4xl font-semibold tracking-tight truncate">{profile.full_name || "Student"}</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Class {profile.class ?? "—"} · {profile.board ?? "WBBSE"}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Class {profile.class ?? "—"} · WBBSE</p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:min-w-[420px]">
               <MiniStat icon={<Sparkles className="h-3.5 w-3.5" />} label="XP" value={String(profile.xp ?? 0)} />
