@@ -67,10 +67,10 @@ function Home() {
         setSubjects(enriched);
       }
 
-      // Recent attempts
+      // Recent attempts (fetch enough to group into sessions)
       const { data: recent } = await supabase.from("quiz_attempts")
-        .select("id, is_correct, created_at, time_seconds, question:questions(question)")
-        .eq("user_id", uid).order("created_at", { ascending: false }).limit(5);
+        .select("id, is_correct, created_at, time_seconds, session_id, topic_id, subject:subjects(name), question:questions(question_bank:question_banks(topic:topics(id, name)))")
+        .eq("user_id", uid).order("created_at", { ascending: false }).limit(200);
       setAttempts(recent ?? []);
 
       // Rank within class (approx by XP)
