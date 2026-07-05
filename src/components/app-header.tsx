@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { GraduationCap, LogOut, ShieldCheck, ArrowLeft } from "lucide-react";
+import { GraduationCap, LogOut, ShieldCheck, ArrowLeft, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export function AppHeader({ isAdmin, back }: { isAdmin?: boolean; back?: { to: string; label?: string; params?: Record<string, string> } }) {
