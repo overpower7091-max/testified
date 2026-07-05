@@ -5,7 +5,7 @@ import { AppHeader } from "@/components/app-header";
 import { Latex } from "@/components/latex";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/_authenticated/history/session/$sessionId")({
+export const Route = createFileRoute("/_authenticated/history_/session/$sessionId")({
   head: () => ({ meta: [{ title: "Quiz review — Testified" }] }),
   component: SessionReview,
 });
