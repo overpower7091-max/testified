@@ -51,7 +51,7 @@ function Leaderboard() {
       setLoading(true);
       // Fetch peers in class
       let profileQ = supabase.from("profiles").select("id, full_name, class, xp, streak").limit(200);
-      if (myClass) profileQ = profileQ.eq("class", myClass);
+      if (myClass) profileQ = profileQ.eq("class", myClass as any);
       const { data: peers } = await profileQ;
       const peerIds = (peers ?? []).map((p) => p.id);
       if (peerIds.length === 0) { setRows([]); setLoading(false); return; }
