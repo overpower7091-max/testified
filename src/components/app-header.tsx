@@ -9,7 +9,7 @@ export function AppHeader({ isAdmin, back }: { isAdmin?: boolean; back?: { to: s
     navigate({ to: "/auth", replace: true });
   };
   return (
-    <header className="sticky top-0 z-30 px-4 sm:px-6 lg:px-10 pt-4">
+    <header className="relative z-30 px-4 sm:px-6 lg:px-10 pt-4">
       <div className="glass mx-auto flex max-w-7xl items-center justify-between rounded-2xl px-4 py-2.5">
         <div className="flex items-center gap-3">
           {back && (
