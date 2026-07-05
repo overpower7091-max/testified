@@ -41,20 +41,29 @@ function Profile() {
 
   useEffect(() => {
     (async () => {
-      const { data: userRes } = await supabase.auth.getUser();
-      if (!userRes.user) return;
-      const uid = userRes.user.id;
-      const [{ data: p }, { data: att }] = await Promise.all([
-        supabase.from("profiles")
-          .select("full_name, avatar_url, class, xp, streak")
-          .eq("id", uid).maybeSingle(),
-        supabase.from("quiz_attempts")
-          .select("id, is_correct, time_seconds, created_at, session_id, topic_id, subject_id, subject:subjects(id, name)")
-          .eq("user_id", uid).order("created_at", { ascending: true }).limit(2000),
-      ]);
-      setProfile(p);
-      setAttempts((att ?? []) as any);
-      setLoading(false);
+      try {
+        const { data: userRes } = await supabase.auth.getUser();
+        if (!userRes.user) { setLoading(false); return; }
+        const uid = userRes.user.id;
+        const [{ data: p }, { data: att }, { data: subs }] = await Promise.all([
+          supabase.from("profiles")
+            .select("full_name, avatar_url, class, xp, streak")
+            .eq("id", uid).maybeSingle(),
+          supabase.from("quiz_attempts")
+            .select("id, is_correct, time_seconds, created_at, session_id, topic_id, subject_id")
+            .eq("user_id", uid).order("created_at", { ascending: true }).limit(2000),
+          supabase.from("subjects").select("id, name"),
+        ]);
+        const subMap = new Map((subs ?? []).map((s: any) => [s.id, s.name]));
+        const enriched = (att ?? []).map((a: any) => ({
+          ...a,
+          subject: a.subject_id ? { id: a.subject_id, name: subMap.get(a.subject_id) ?? "Practice" } : null,
+        }));
+        setProfile(p);
+        setAttempts(enriched as any);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
