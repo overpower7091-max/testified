@@ -28,6 +28,9 @@ export function AppHeader({ isAdmin, back }: { isAdmin?: boolean; back?: { to: s
           </Link>
         </div>
         <div className="flex items-center gap-2">
+          <Link to="/live" className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs font-medium hover:text-primary transition-colors" aria-label="Live Quiz">
+            <Radio className="h-3.5 w-3.5 text-red-500" /> <span className="hidden sm:inline">Live</span>
+          </Link>
           {isAdmin && (
             <Link to="/admin" className="hidden sm:inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs font-medium hover:text-primary transition-colors">
               <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Admin
