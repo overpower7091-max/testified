@@ -51,6 +51,9 @@ function AdminHome() {
             <Link to="/admin/content" className="btn-gradient rounded-full px-4 py-2 text-sm font-medium inline-flex items-center gap-2">
               <FileText className="h-4 w-4" /> Manage content & MCQs
             </Link>
+            <Link to="/admin/live-quiz" className="rounded-full glass px-4 py-2 text-sm font-medium inline-flex items-center gap-2 hover:text-primary">
+              <FileText className="h-4 w-4" /> Live Quiz Configuration
+            </Link>
           </div>
         </div>
 
