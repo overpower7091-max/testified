@@ -18,6 +18,7 @@ import { Route as AuthenticatedSubjectsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedMockRouteImport } from './routes/_authenticated/mock'
+import { Route as AuthenticatedLiveRouteImport } from './routes/_authenticated/live'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
@@ -25,6 +26,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedSubjectIdRouteImport } from './routes/_authenticated/subject.$id'
 import { Route as AuthenticatedPracticeChapterIdRouteImport } from './routes/_authenticated/practice.$chapterId'
+import { Route as AuthenticatedAdminLiveQuizRouteImport } from './routes/_authenticated/admin.live-quiz'
 import { Route as AuthenticatedAdminContentIndexRouteImport } from './routes/_authenticated/admin.content.index'
 import { Route as ApiPublicHooksLiveQuizTickRouteImport } from './routes/api/public/hooks/live-quiz-tick'
 import { Route as AuthenticatedPracticeTopicTopicIdRouteImport } from './routes/_authenticated/practice.topic.$topicId'
@@ -78,6 +80,11 @@ const AuthenticatedMockRoute = AuthenticatedMockRouteImport.update({
   path: '/mock',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLiveRoute = AuthenticatedLiveRouteImport.update({
+  id: '/live',
+  path: '/live',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedLeaderboardRoute =
   AuthenticatedLeaderboardRouteImport.update({
     id: '/leaderboard',
@@ -114,6 +121,12 @@ const AuthenticatedPracticeChapterIdRoute =
     id: '/practice/$chapterId',
     path: '/practice/$chapterId',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminLiveQuizRoute =
+  AuthenticatedAdminLiveQuizRouteImport.update({
+    id: '/live-quiz',
+    path: '/live-quiz',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminContentIndexRoute =
   AuthenticatedAdminContentIndexRouteImport.update({
@@ -173,10 +186,12 @@ export interface FileRoutesByFullPath {
   '/history': typeof AuthenticatedHistoryRoute
   '/home': typeof AuthenticatedHomeRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
+  '/live': typeof AuthenticatedLiveRoute
   '/mock': typeof AuthenticatedMockRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
+  '/admin/live-quiz': typeof AuthenticatedAdminLiveQuizRoute
   '/practice/$chapterId': typeof AuthenticatedPracticeChapterIdRoute
   '/subject/$id': typeof AuthenticatedSubjectIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -197,10 +212,12 @@ export interface FileRoutesByTo {
   '/history': typeof AuthenticatedHistoryRoute
   '/home': typeof AuthenticatedHomeRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
+  '/live': typeof AuthenticatedLiveRoute
   '/mock': typeof AuthenticatedMockRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
+  '/admin/live-quiz': typeof AuthenticatedAdminLiveQuizRoute
   '/practice/$chapterId': typeof AuthenticatedPracticeChapterIdRoute
   '/subject/$id': typeof AuthenticatedSubjectIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -224,10 +241,12 @@ export interface FileRoutesById {
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
+  '/_authenticated/live': typeof AuthenticatedLiveRoute
   '/_authenticated/mock': typeof AuthenticatedMockRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/subjects': typeof AuthenticatedSubjectsRoute
+  '/_authenticated/admin/live-quiz': typeof AuthenticatedAdminLiveQuizRoute
   '/_authenticated/practice/$chapterId': typeof AuthenticatedPracticeChapterIdRoute
   '/_authenticated/subject/$id': typeof AuthenticatedSubjectIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -251,10 +270,12 @@ export interface FileRouteTypes {
     | '/history'
     | '/home'
     | '/leaderboard'
+    | '/live'
     | '/mock'
     | '/onboarding'
     | '/profile'
     | '/subjects'
+    | '/admin/live-quiz'
     | '/practice/$chapterId'
     | '/subject/$id'
     | '/admin/'
@@ -275,10 +296,12 @@ export interface FileRouteTypes {
     | '/history'
     | '/home'
     | '/leaderboard'
+    | '/live'
     | '/mock'
     | '/onboarding'
     | '/profile'
     | '/subjects'
+    | '/admin/live-quiz'
     | '/practice/$chapterId'
     | '/subject/$id'
     | '/admin'
@@ -301,10 +324,12 @@ export interface FileRouteTypes {
     | '/_authenticated/history'
     | '/_authenticated/home'
     | '/_authenticated/leaderboard'
+    | '/_authenticated/live'
     | '/_authenticated/mock'
     | '/_authenticated/onboarding'
     | '/_authenticated/profile'
     | '/_authenticated/subjects'
+    | '/_authenticated/admin/live-quiz'
     | '/_authenticated/practice/$chapterId'
     | '/_authenticated/subject/$id'
     | '/_authenticated/admin/'
@@ -392,6 +417,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMockRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/live': {
+      id: '/_authenticated/live'
+      path: '/live'
+      fullPath: '/live'
+      preLoaderRoute: typeof AuthenticatedLiveRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/leaderboard': {
       id: '/_authenticated/leaderboard'
       path: '/leaderboard'
@@ -440,6 +472,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/practice/$chapterId'
       preLoaderRoute: typeof AuthenticatedPracticeChapterIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/live-quiz': {
+      id: '/_authenticated/admin/live-quiz'
+      path: '/live-quiz'
+      fullPath: '/admin/live-quiz'
+      preLoaderRoute: typeof AuthenticatedAdminLiveQuizRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/content/': {
       id: '/_authenticated/admin/content/'
@@ -501,6 +540,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminLiveQuizRoute: typeof AuthenticatedAdminLiveQuizRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminClassLevelRoute: typeof AuthenticatedAdminClassLevelRoute
   AuthenticatedAdminStudentIdRoute: typeof AuthenticatedAdminStudentIdRoute
@@ -510,6 +550,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminLiveQuizRoute: AuthenticatedAdminLiveQuizRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminClassLevelRoute: AuthenticatedAdminClassLevelRoute,
   AuthenticatedAdminStudentIdRoute: AuthenticatedAdminStudentIdRoute,
@@ -527,6 +568,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
+  AuthenticatedLiveRoute: typeof AuthenticatedLiveRoute
   AuthenticatedMockRoute: typeof AuthenticatedMockRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
@@ -542,6 +584,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
+  AuthenticatedLiveRoute: AuthenticatedLiveRoute,
   AuthenticatedMockRoute: AuthenticatedMockRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
