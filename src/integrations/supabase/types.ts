@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       boards: {
         Row: {
           code: string | null
@@ -92,6 +119,395 @@ export type Database = {
             columns: ["board_id"]
             isOneToOne: false
             referencedRelation: "boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_quiz_answers: {
+        Row: {
+          id: string
+          is_correct: boolean
+          live_quiz_id: string
+          position: number
+          question_id: string
+          response_ms: number
+          selected_index: number | null
+          submitted_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_correct?: boolean
+          live_quiz_id: string
+          position: number
+          question_id: string
+          response_ms?: number
+          selected_index?: number | null
+          submitted_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_correct?: boolean
+          live_quiz_id?: string
+          position?: number
+          question_id?: string
+          response_ms?: number
+          selected_index?: number | null
+          submitted_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_quiz_answers_live_quiz_id_fkey"
+            columns: ["live_quiz_id"]
+            isOneToOne: false
+            referencedRelation: "live_quizzes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_quiz_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_quiz_blueprint_topics: {
+        Row: {
+          blueprint_id: string
+          created_at: string
+          id: string
+          question_count: number
+          topic_id: string
+        }
+        Insert: {
+          blueprint_id: string
+          created_at?: string
+          id?: string
+          question_count?: number
+          topic_id: string
+        }
+        Update: {
+          blueprint_id?: string
+          created_at?: string
+          id?: string
+          question_count?: number
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_quiz_blueprint_topics_blueprint_id_fkey"
+            columns: ["blueprint_id"]
+            isOneToOne: false
+            referencedRelation: "live_quiz_blueprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_quiz_blueprint_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_quiz_blueprint_versions: {
+        Row: {
+          blueprint_id: string
+          class_level: Database["public"]["Enums"]["class_level"]
+          created_at: string
+          created_by: string | null
+          id: string
+          snapshot: Json
+          subject_id: string
+        }
+        Insert: {
+          blueprint_id: string
+          class_level: Database["public"]["Enums"]["class_level"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          snapshot: Json
+          subject_id: string
+        }
+        Update: {
+          blueprint_id?: string
+          class_level?: Database["public"]["Enums"]["class_level"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          snapshot?: Json
+          subject_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_quiz_blueprint_versions_blueprint_id_fkey"
+            columns: ["blueprint_id"]
+            isOneToOne: false
+            referencedRelation: "live_quiz_blueprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_quiz_blueprint_versions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_quiz_blueprints: {
+        Row: {
+          class_level: Database["public"]["Enums"]["class_level"]
+          created_at: string
+          created_by: string | null
+          difficulty_easy: number
+          difficulty_hard: number
+          difficulty_medium: number
+          id: string
+          is_active: boolean
+          lookback_weeks: number
+          question_seconds: number
+          questions_total: number
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          class_level: Database["public"]["Enums"]["class_level"]
+          created_at?: string
+          created_by?: string | null
+          difficulty_easy?: number
+          difficulty_hard?: number
+          difficulty_medium?: number
+          id?: string
+          is_active?: boolean
+          lookback_weeks?: number
+          question_seconds?: number
+          questions_total?: number
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          class_level?: Database["public"]["Enums"]["class_level"]
+          created_at?: string
+          created_by?: string | null
+          difficulty_easy?: number
+          difficulty_hard?: number
+          difficulty_medium?: number
+          id?: string
+          is_active?: boolean
+          lookback_weeks?: number
+          question_seconds?: number
+          questions_total?: number
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_quiz_blueprints_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_quiz_participants: {
+        Row: {
+          answered_count: number
+          correct_count: number
+          finished_at: string | null
+          id: string
+          joined_at: string
+          last_submit_at: string | null
+          live_quiz_id: string
+          rank: number | null
+          score: number
+          total_time_ms: number
+          user_id: string
+        }
+        Insert: {
+          answered_count?: number
+          correct_count?: number
+          finished_at?: string | null
+          id?: string
+          joined_at?: string
+          last_submit_at?: string | null
+          live_quiz_id: string
+          rank?: number | null
+          score?: number
+          total_time_ms?: number
+          user_id: string
+        }
+        Update: {
+          answered_count?: number
+          correct_count?: number
+          finished_at?: string | null
+          id?: string
+          joined_at?: string
+          last_submit_at?: string | null
+          live_quiz_id?: string
+          rank?: number | null
+          score?: number
+          total_time_ms?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_quiz_participants_live_quiz_id_fkey"
+            columns: ["live_quiz_id"]
+            isOneToOne: false
+            referencedRelation: "live_quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_quiz_questions: {
+        Row: {
+          difficulty: Database["public"]["Enums"]["difficulty"]
+          id: string
+          live_quiz_id: string
+          position: number
+          question_id: string
+          topic_id: string | null
+        }
+        Insert: {
+          difficulty?: Database["public"]["Enums"]["difficulty"]
+          id?: string
+          live_quiz_id: string
+          position: number
+          question_id: string
+          topic_id?: string | null
+        }
+        Update: {
+          difficulty?: Database["public"]["Enums"]["difficulty"]
+          id?: string
+          live_quiz_id?: string
+          position?: number
+          question_id?: string
+          topic_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_quiz_questions_live_quiz_id_fkey"
+            columns: ["live_quiz_id"]
+            isOneToOne: false
+            referencedRelation: "live_quizzes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_quiz_questions_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_quiz_questions_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_quiz_streaks: {
+        Row: {
+          class_level: Database["public"]["Enums"]["class_level"]
+          current_streak: number
+          id: string
+          last_participated_on: string | null
+          longest_streak: number
+          total_attempted: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          class_level: Database["public"]["Enums"]["class_level"]
+          current_streak?: number
+          id?: string
+          last_participated_on?: string | null
+          longest_streak?: number
+          total_attempted?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          class_level?: Database["public"]["Enums"]["class_level"]
+          current_streak?: number
+          id?: string
+          last_participated_on?: string | null
+          longest_streak?: number
+          total_attempted?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      live_quizzes: {
+        Row: {
+          blueprint_version_id: string | null
+          class_level: Database["public"]["Enums"]["class_level"]
+          created_at: string
+          current_question_index: number
+          current_question_start_at: string | null
+          ended_at: string | null
+          id: string
+          question_seconds: number
+          questions_total: number
+          scheduled_at: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["live_quiz_status"]
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          blueprint_version_id?: string | null
+          class_level: Database["public"]["Enums"]["class_level"]
+          created_at?: string
+          current_question_index?: number
+          current_question_start_at?: string | null
+          ended_at?: string | null
+          id?: string
+          question_seconds?: number
+          questions_total?: number
+          scheduled_at: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["live_quiz_status"]
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          blueprint_version_id?: string | null
+          class_level?: Database["public"]["Enums"]["class_level"]
+          created_at?: string
+          current_question_index?: number
+          current_question_start_at?: string | null
+          ended_at?: string | null
+          id?: string
+          question_seconds?: number
+          questions_total?: number
+          scheduled_at?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["live_quiz_status"]
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_quizzes_blueprint_version_id_fkey"
+            columns: ["blueprint_version_id"]
+            isOneToOne: false
+            referencedRelation: "live_quiz_blueprint_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_quizzes_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
             referencedColumns: ["id"]
           },
         ]
@@ -370,6 +786,38 @@ export type Database = {
           },
         ]
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          awarded_at: string
+          id: string
+          ref_id: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          awarded_at?: string
+          id?: string
+          ref_id?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          awarded_at?: string
+          id?: string
+          ref_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -391,6 +839,33 @@ export type Database = {
         }
         Relationships: []
       }
+      xp_history: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          ref_id: string | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          ref_id?: string | null
+          source: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          ref_id?: string | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -408,6 +883,13 @@ export type Database = {
       app_role: "student" | "admin"
       class_level: "6" | "7" | "8" | "9" | "10" | "11" | "12"
       difficulty: "easy" | "medium" | "hard"
+      live_quiz_status:
+        | "scheduled"
+        | "configuration_required"
+        | "generating"
+        | "live"
+        | "ended"
+        | "cancelled"
       question_type:
         | "single"
         | "multiple"
@@ -546,6 +1028,14 @@ export const Constants = {
       app_role: ["student", "admin"],
       class_level: ["6", "7", "8", "9", "10", "11", "12"],
       difficulty: ["easy", "medium", "hard"],
+      live_quiz_status: [
+        "scheduled",
+        "configuration_required",
+        "generating",
+        "live",
+        "ended",
+        "cancelled",
+      ],
       question_type: [
         "single",
         "multiple",
