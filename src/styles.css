@@ -92,8 +92,8 @@
     font-weight: 400;
     background-color: var(--color-background);
     background-image:
-      radial-gradient(1000px 600px at -10% -10%, hsl(217 91% 60% / 0.25), transparent 60%),
-      radial-gradient(900px 700px at 110% 10%, hsl(199 89% 60% / 0.22), transparent 55%),
+      radial-gradient(1000px 600px at -10% -10%, hsl(217 91% 60% / 0.20), transparent 60%),
+      radial-gradient(900px 700px at 110% 10%, hsl(199 89% 60% / 0.16), transparent 55%),
       radial-gradient(1200px 800px at 50% 120%, hsl(221 83% 53% / 0.18), transparent 60%);
     background-attachment: fixed;
   }
@@ -105,37 +105,37 @@
 
 @layer components {
   .glass {
-    background: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.06);
     backdrop-filter: blur(24px) saturate(140%);
     -webkit-backdrop-filter: blur(24px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.10);
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.8) inset,
-      0 20px 40px -20px rgba(30, 64, 175, 0.18);
+      0 1px 0 rgba(255, 255, 255, 0.10) inset,
+      0 20px 40px -20px rgba(0, 0, 0, 0.55);
   }
   .glass-strong {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.10);
     backdrop-filter: blur(30px) saturate(160%);
     -webkit-backdrop-filter: blur(30px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.9) inset,
-      0 30px 60px -25px rgba(30, 64, 175, 0.22);
+      0 1px 0 rgba(255, 255, 255, 0.14) inset,
+      0 30px 60px -25px rgba(0, 0, 0, 0.6);
   }
   .glass-tint {
-    background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(56,189,248,0.08));
+    background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(56,189,248,0.10));
     backdrop-filter: blur(20px) saturate(140%);
     -webkit-backdrop-filter: blur(20px) saturate(140%);
-    border: 1px solid rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.12);
   }
   .gradient-text {
-    background: linear-gradient(135deg, hsl(221 83% 53%), hsl(199 89% 55%));
+    background: linear-gradient(135deg, hsl(217 91% 68%), hsl(199 89% 66%));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .btn-gradient {
-    background: linear-gradient(135deg, hsl(221 83% 53%), hsl(217 91% 60%));
+    background: linear-gradient(135deg, hsl(221 83% 56%), hsl(217 91% 64%));
     color: white;
     box-shadow: 0 10px 25px -10px hsl(221 83% 53% / 0.6);
     transition: transform .2s ease, box-shadow .2s ease;
@@ -146,6 +146,6 @@
   }
 
   /* Legacy classes kept as no-op shims so any remaining usages don't break */
-  .liquid-glass { background: rgba(255,255,255,0.55); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.6); border-radius: inherit; }
-  .liquid-glass-strong { background: rgba(255,255,255,0.7); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.7); border-radius: inherit; }
+  .liquid-glass { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.10); border-radius: inherit; }
+  .liquid-glass-strong { background: rgba(255,255,255,0.10); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.14); border-radius: inherit; }
 }
