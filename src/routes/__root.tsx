@@ -78,6 +78,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "color-scheme", content: "dark" },
+      { name: "theme-color", content: "#0b0f18" },
       { title: "Testified" },
       { name: "description", content: "Testified helps WBBSE students in classes 6–12 master Science and Math with quality MCQs and live mock tests." },
       { name: "author", content: "Testified" },
