@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppHeader } from "@/components/app-header";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +7,7 @@ import {
   getTodaysLiveQuiz,
   getUpcomingLiveQuizzes,
   joinLiveQuiz,
-  getLiveState,
+  getLiveSession,
   submitAnswer,
   getLeaderboard,
   getResults,
@@ -92,6 +92,25 @@ function statusClass(s: string) {
   return "bg-primary/15 text-primary";
 }
 
+type Session = {
+  quiz_id: string;
+  status: string;
+  subject: string | null;
+  questions_total: number;
+  question_seconds: number;
+  scheduled_at: string;
+  started_at: string | null;
+  ended_at: string | null;
+  server_now: string;
+  questions: { position: number; difficulty: string; text: string; options: string[]; images?: string[] }[];
+  my_answers: { position: number; selected_index: number | null; is_correct: boolean }[];
+};
+
+/**
+ * Downloads the whole session once, then runs entirely from memory.
+ * Question index is derived from server time (anchor + index * duration),
+ * so transitions are instant and every student stays in sync.
+ */
 function QuizRunner({
   quizId,
   onLeave,
@@ -101,96 +120,126 @@ function QuizRunner({
   onLeave: () => void;
   upcoming: any[];
 }) {
-  const [state, setState] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<number | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [status, setStatus] = useState<string>("loading");
+  const [index, setIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, { selected_index: number | null; is_correct: boolean }>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [now, setNow] = useState(Date.now());
   const skewRef = useRef(0);
+  const anchorRef = useRef(0);
+  const durRef = useRef(90_000);
+  const totalRef = useRef(0);
+
   const join = useServerFn(joinLiveQuiz);
-  const state$ = useServerFn(getLiveState);
+  const loadSession = useServerFn(getLiveSession);
   const submit = useServerFn(submitAnswer);
 
-  const refresh = async () => {
-    try {
-      const s = await state$({ data: { quiz_id: quizId } });
-      const serverMs = new Date(s.server_now).getTime();
-      skewRef.current = serverMs - Date.now();
-      setState(s);
-      // Reset selection when moving to a new question
-      if (s.my_answer) setSelected(s.my_answer.selected_index);
-      else setSelected(null);
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to load quiz");
-    } finally {
-      setLoading(false);
+  const applySession = useCallback((s: Session) => {
+    skewRef.current = new Date(s.server_now).getTime() - Date.now();
+    anchorRef.current = new Date(s.started_at ?? s.scheduled_at).getTime();
+    durRef.current = (s.question_seconds ?? 90) * 1000;
+    totalRef.current = s.questions_total;
+    const map: Record<number, { selected_index: number | null; is_correct: boolean }> = {};
+    for (const a of s.my_answers) map[a.position] = { selected_index: a.selected_index, is_correct: a.is_correct };
+    setAnswers(map);
+    setSession(s);
+    setStatus(s.status);
+    // Preload any question images before the quiz starts
+    for (const q of s.questions) {
+      for (const src of q.images ?? []) {
+        const img = new Image();
+        img.src = src;
+      }
     }
-  };
+  }, []);
 
+  const reload = useCallback(async () => {
+    const s = (await loadSession({ data: { quiz_id: quizId } })) as Session;
+    applySession(s);
+    return s;
+  }, [quizId]);
+
+  // Single bulk download on mount (also covers refresh / reconnect)
   useEffect(() => {
     (async () => {
-      await join({ data: { quiz_id: quizId } }).catch(() => null);
-      await refresh();
+      try {
+        await join({ data: { quiz_id: quizId } }).catch(() => null);
+        await reload();
+      } catch (e: any) {
+        toast.error(e?.message ?? "Failed to load quiz");
+        setStatus("error");
+      }
     })();
   }, [quizId]);
 
-  // Realtime subscription — refetch on any live_quizzes change for this quiz
+  // Realtime: only important events (start / end / cancel) trigger a reload
   useEffect(() => {
     const channel = supabase
       .channel(`live_quiz_${quizId}`)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "live_quizzes", filter: `id=eq.${quizId}` },
-        () => refresh(),
+        (payload: any) => {
+          const next = payload.new?.status;
+          if (next && next !== status) reload().catch(() => null);
+        },
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [quizId]);
+  }, [quizId, status]);
 
-  // Client tick for countdown + periodic safety poll every 5s
+  // Derive the current index from server time. No DB reads here.
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 300);
-    const poll = setInterval(() => refresh(), 5000);
-    return () => {
-      clearInterval(t);
-      clearInterval(poll);
+    if (status !== "live") return;
+    const tick = () => {
+      const serverNow = Date.now() + skewRef.current;
+      const i = Math.floor((serverNow - anchorRef.current) / durRef.current);
+      if (i >= totalRef.current) {
+        setStatus("awaiting_results");
+        return;
+      }
+      setIndex((prev) => (prev === i ? prev : Math.max(0, i)));
     };
-  }, [quizId]);
+    tick();
+    const iv = setInterval(tick, 200);
+    return () => clearInterval(iv);
+  }, [status]);
 
-  const currentIndex = state?.current_index ?? 0;
-  // Reset selection when question index changes
+  // While results are being computed, poll status until it flips to ended
   useEffect(() => {
-    if (state?.my_answer) setSelected(state.my_answer.selected_index);
-    else setSelected(null);
-  }, [currentIndex, state?.my_answer]);
+    if (status !== "awaiting_results" && status !== "scheduled") return;
+    const iv = setInterval(() => {
+      reload().catch(() => null);
+    }, 4000);
+    return () => clearInterval(iv);
+  }, [status, reload]);
 
-  const remaining = useMemo(() => {
-    if (!state?.current_start_at || state.status !== "live") return 0;
-    const start = new Date(state.current_start_at).getTime();
-    const end = start + (state.question_seconds ?? 90) * 1000;
-    const serverNow = now + skewRef.current;
-    return Math.max(0, Math.ceil((end - serverNow) / 1000));
-  }, [state, now]);
+  const handleSubmit = useCallback(
+    async (idx: number) => {
+      if (submitting || answers[index]) return;
+      setSubmitting(true);
+      // Optimistic lock — UI never waits for the network
+      setAnswers((prev) => ({ ...prev, [index]: { selected_index: idx, is_correct: false } }));
+      try {
+        const r = await submit({ data: { quiz_id: quizId, position: index, selected_index: idx } });
+        setAnswers((prev) => ({ ...prev, [index]: { selected_index: idx, is_correct: r.is_correct } }));
+      } catch (e: any) {
+        setAnswers((prev) => {
+          const next = { ...prev };
+          delete next[index];
+          return next;
+        });
+        toast.error(e?.message ?? "Submit failed");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [index, answers, submitting, quizId],
+  );
 
-  const handleSubmit = async (idx: number) => {
-    if (submitting || state?.my_answer) return;
-    setSelected(idx);
-    setSubmitting(true);
-    try {
-      const r = await submit({ data: { quiz_id: quizId, position: currentIndex, selected_index: idx } });
-      toast[r.is_correct ? "success" : "error"](r.is_correct ? "Correct!" : "Locked in");
-      await refresh();
-    } catch (e: any) {
-      toast.error(e?.message ?? "Submit failed");
-      setSelected(null);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (loading || !state) {
+  if (status === "loading" || !session) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -198,10 +247,7 @@ function QuizRunner({
     );
   }
 
-  const scheduled = new Date(state.scheduled_at).getTime();
-  const secondsUntilStart = Math.max(0, Math.floor((scheduled - (now + skewRef.current)) / 1000));
-
-  if (state.status === "configuration_required") {
+  if (status === "configuration_required" || status === "cancelled" || status === "error") {
     return (
       <div className="min-h-screen">
         <AppHeader back={{ to: "/home" }} />
@@ -215,25 +261,24 @@ function QuizRunner({
     );
   }
 
-  if (state.status === "scheduled") {
+  if (status === "scheduled" || status === "generating") {
     return (
       <div className="min-h-screen">
         <AppHeader back={{ to: "/home" }} />
         <main className="mx-auto max-w-2xl px-4 py-10">
           <div className="glass-strong rounded-3xl p-8 text-center">
             <div className="text-xs uppercase tracking-widest text-primary/80">Live Quiz</div>
-            <h1 className="mt-2 text-3xl font-semibold gradient-text">{state.subject}</h1>
-            <div className="mt-6 text-6xl font-bold tabular-nums">
-              {formatHMS(secondsUntilStart)}
-            </div>
+            <h1 className="mt-2 text-3xl font-semibold gradient-text">{session.subject}</h1>
+            <CountdownToStart
+              targetMs={new Date(session.scheduled_at).getTime()}
+              skewRef={skewRef}
+              onReached={() => reload().catch(() => null)}
+            />
             <p className="mt-3 text-sm text-muted-foreground">
-              Starts at {new Date(state.scheduled_at).toLocaleTimeString()} — {state.questions_total} questions,{" "}
-              {state.question_seconds}s each.
+              Starts at {new Date(session.scheduled_at).toLocaleTimeString()} — {session.questions_total} questions,{" "}
+              {session.question_seconds}s each.
             </p>
-            <button
-              onClick={onLeave}
-              className="mt-6 text-xs text-muted-foreground hover:text-primary"
-            >
+            <button onClick={onLeave} className="mt-6 text-xs text-muted-foreground hover:text-primary">
               ← Back
             </button>
           </div>
@@ -243,15 +288,30 @@ function QuizRunner({
     );
   }
 
-  if (state.status === "ended") {
+  if (status === "ended") {
     return <ResultsView quizId={quizId} onLeave={onLeave} />;
   }
 
-  // LIVE
-  const q = state.question;
-  const progress = ((currentIndex + 1) / state.questions_total) * 100;
-  const timeFrac = state.question_seconds > 0 ? remaining / state.question_seconds : 0;
-  const answered = !!state.my_answer;
+  if (status === "awaiting_results") {
+    return (
+      <div className="min-h-screen">
+        <AppHeader back={{ to: "/home" }} />
+        <main className="mx-auto max-w-2xl px-4 py-10 text-center">
+          <div className="glass-strong rounded-3xl p-8">
+            <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
+            <h1 className="mt-4 text-xl font-semibold">Calculating results…</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Scores, ranks and the final leaderboard are being published.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // LIVE — layout/header/timer stay mounted; only the question card swaps.
+  const q = session.questions.find((x) => x.position === index) ?? null;
+  const answered = answers[index] ?? null;
 
   return (
     <div className="min-h-screen">
@@ -261,80 +321,155 @@ function QuizRunner({
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[10px] uppercase tracking-widest text-red-500 flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Live · {state.subject}
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Live · {session.subject}
               </div>
               <div className="mt-1 text-lg font-semibold">
-                Question {currentIndex + 1} <span className="text-muted-foreground">of {state.questions_total}</span>
+                Question {index + 1} <span className="text-muted-foreground">of {session.questions_total}</span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-primary" />
-              <span
-                className={`text-2xl font-bold tabular-nums ${
-                  remaining <= 10 ? "text-red-500" : "text-foreground"
-                }`}
-              >
-                {remaining}s
-              </span>
-            </div>
+            <QuestionTimer
+              index={index}
+              anchorRef={anchorRef}
+              durRef={durRef}
+              skewRef={skewRef}
+              seconds={session.question_seconds}
+            />
           </div>
           <div className="mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden">
-            <div className="h-full btn-gradient transition-all" style={{ width: `${progress}%` }} />
-          </div>
-          <div className="mt-1 h-1 rounded-full bg-white/5 overflow-hidden">
             <div
-              className={`h-full transition-all ${remaining <= 10 ? "bg-red-500" : "bg-primary"}`}
-              style={{ width: `${timeFrac * 100}%` }}
+              className="h-full btn-gradient transition-all"
+              style={{ width: `${((index + 1) / session.questions_total) * 100}%` }}
             />
           </div>
 
-          {q ? (
-            <>
-              <div className="mt-6 text-lg leading-relaxed">
-                <Latex>{q.text}</Latex>
-              </div>
-              <div className="mt-5 space-y-2">
-                {q.options.map((opt: string, idx: number) => {
-                  const isSel = selected === idx;
-                  return (
-                    <button
-                      key={idx}
-                      disabled={answered || submitting}
-                      onClick={() => handleSubmit(idx)}
-                      className={`w-full text-left rounded-2xl px-4 py-3 transition ${
-                        isSel
-                          ? "btn-gradient text-white"
-                          : answered
-                          ? "glass opacity-60 cursor-not-allowed"
-                          : "glass hover:text-primary"
-                      }`}
-                    >
-                      <span className="text-xs font-bold mr-2 opacity-70">
-                        {String.fromCharCode(65 + idx)}.
-                      </span>
-                      <Latex>{opt}</Latex>
-                    </button>
-                  );
-                })}
-              </div>
-              {answered && (
-                <div className="mt-4 text-sm text-center text-muted-foreground">
-                  Answer locked · waiting for next question…
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="mt-6 text-sm text-muted-foreground text-center py-8">
-              Waiting for question…
-            </div>
-          )}
+          <QuestionCard
+            question={q}
+            selected={answered?.selected_index ?? null}
+            locked={!!answered}
+            submitting={submitting}
+            onSelect={handleSubmit}
+          />
         </div>
 
-        <LiveLeaderboard quizId={quizId} />
+        <div className="mt-6 glass rounded-3xl p-5 text-center text-xs text-muted-foreground">
+          <Trophy className="mx-auto h-4 w-4 text-primary" />
+          <p className="mt-2">The leaderboard is published as soon as the quiz ends.</p>
+        </div>
+
       </main>
     </div>
   );
 }
+
+const QuestionCard = memo(function QuestionCard({
+  question,
+  selected,
+  locked,
+  submitting,
+  onSelect,
+}: {
+  question: { text: string; options: string[]; difficulty: string } | null;
+  selected: number | null;
+  locked: boolean;
+  submitting: boolean;
+  onSelect: (idx: number) => void;
+}) {
+  if (!question) {
+    return <div className="mt-6 text-sm text-muted-foreground text-center py-8">Waiting for question…</div>;
+  }
+  return (
+    <div className="animate-in fade-in duration-200">
+      <div className="mt-6 text-lg leading-relaxed">
+        <Latex>{question.text}</Latex>
+      </div>
+      <div className="mt-5 space-y-2">
+        {question.options.map((opt: string, idx: number) => {
+          const isSel = selected === idx;
+          return (
+            <button
+              key={idx}
+              disabled={locked || submitting}
+              onClick={() => onSelect(idx)}
+              className={`w-full text-left rounded-2xl px-4 py-3 transition ${
+                isSel ? "btn-gradient text-white" : locked ? "glass opacity-60 cursor-not-allowed" : "glass hover:text-primary"
+              }`}
+            >
+              <span className="text-xs font-bold mr-2 opacity-70">{String.fromCharCode(65 + idx)}.</span>
+              <Latex>{opt}</Latex>
+            </button>
+          );
+        })}
+      </div>
+      {locked && (
+        <div className="mt-4 text-sm text-center text-muted-foreground">
+          Answer locked · waiting for next question…
+        </div>
+      )}
+    </div>
+  );
+});
+
+function QuestionTimer({
+  index,
+  anchorRef,
+  durRef,
+  skewRef,
+  seconds,
+}: {
+  index: number;
+  anchorRef: React.MutableRefObject<number>;
+  durRef: React.MutableRefObject<number>;
+  skewRef: React.MutableRefObject<number>;
+  seconds: number;
+}) {
+  const [remaining, setRemaining] = useState(seconds);
+  useEffect(() => {
+    const tick = () => {
+      const serverNow = Date.now() + skewRef.current;
+      const end = anchorRef.current + (index + 1) * durRef.current;
+      setRemaining(Math.max(0, Math.ceil((end - serverNow) / 1000)));
+    };
+    tick();
+    const iv = setInterval(tick, 250);
+    return () => clearInterval(iv);
+  }, [index]);
+  return (
+    <div className="flex items-center gap-2">
+      <Clock className="h-4 w-4 text-primary" />
+      <span className={`text-2xl font-bold tabular-nums ${remaining <= 10 ? "text-red-500" : "text-foreground"}`}>
+        {remaining}s
+      </span>
+    </div>
+  );
+}
+
+function CountdownToStart({
+  targetMs,
+  skewRef,
+  onReached,
+}: {
+  targetMs: number;
+  skewRef: React.MutableRefObject<number>;
+  onReached: () => void;
+}) {
+  const [sec, setSec] = useState(0);
+  const firedRef = useRef(false);
+  useEffect(() => {
+    const tick = () => {
+      const left = Math.max(0, Math.floor((targetMs - (Date.now() + skewRef.current)) / 1000));
+      setSec(left);
+      if (left === 0 && !firedRef.current) {
+        firedRef.current = true;
+        onReached();
+      }
+    };
+    tick();
+    const iv = setInterval(tick, 500);
+    return () => clearInterval(iv);
+  }, [targetMs]);
+  return <div className="mt-6 text-6xl font-bold tabular-nums">{formatHMS(sec)}</div>;
+}
+
 
 function LiveLeaderboard({ quizId }: { quizId: string }) {
   const [rows, setRows] = useState<any[]>([]);

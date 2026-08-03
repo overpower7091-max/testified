@@ -59,7 +59,13 @@ export const joinLiveQuiz = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const getLiveState = createServerFn({ method: "POST" })
+/**
+ * Single bulk read for a live quiz. Downloads the whole session once:
+ * meta + every question (without correct answers) + the student's own answers.
+ * The client derives the current question index from server time, so there are
+ * NO database reads between questions.
+ */
+export const getLiveSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { quiz_id: string }) => d)
   .handler(async ({ data, context }) => {
@@ -72,53 +78,47 @@ export const getLiveState = createServerFn({ method: "POST" })
     if (!quiz) throw new Error("Quiz not found");
     if (quiz.class_level !== cls) throw new Error("Wrong class");
 
-    const serverNow = new Date().toISOString();
-    const base = {
+    const meta = {
       quiz_id: quiz.id,
       status: quiz.status,
       subject: (quiz as any).subjects?.name ?? null,
       questions_total: quiz.questions_total,
       question_seconds: quiz.question_seconds,
-      current_index: quiz.current_question_index,
-      current_start_at: quiz.current_question_start_at,
       scheduled_at: quiz.scheduled_at,
-      server_now: serverNow,
+      started_at: quiz.started_at,
+      ended_at: quiz.ended_at,
+      server_now: new Date().toISOString(),
     };
 
-    if (quiz.status === "scheduled" || quiz.status === "configuration_required") {
-      return { ...base, question: null, my_answer: null };
+    if (quiz.status !== "live" && quiz.status !== "ended") {
+      return { ...meta, questions: [], my_answers: [] };
     }
 
-    if (quiz.status === "live" || quiz.status === "ended") {
-      // Return current question (or last question if ended)
-      const pos = quiz.status === "ended" ? quiz.questions_total - 1 : quiz.current_question_index;
-      const { data: lqq } = await context.supabase
+    const [{ data: lqqs }, { data: mine }] = await Promise.all([
+      context.supabase
         .from("live_quiz_questions")
-        .select("position, difficulty, topic_id, questions(id, question, options)")
+        .select("position, difficulty, topic_id, questions(id, question, options, images)")
         .eq("live_quiz_id", quiz.id)
-        .eq("position", pos)
-        .maybeSingle();
-      const { data: mine } = await context.supabase
+        .order("position"),
+      context.supabase
         .from("live_quiz_answers")
-        .select("position, selected_index, is_correct")
+        .select("position, selected_index, is_correct, response_ms")
         .eq("live_quiz_id", quiz.id)
         .eq("user_id", context.userId)
-        .eq("position", pos)
-        .maybeSingle();
-      return {
-        ...base,
-        question: lqq
-          ? {
-              position: lqq.position,
-              difficulty: lqq.difficulty,
-              text: (lqq as any).questions?.question ?? "",
-              options: (lqq as any).questions?.options ?? [],
-            }
-          : null,
-        my_answer: mine ?? null,
-      };
-    }
-    return { ...base, question: null, my_answer: null };
+        .order("position"),
+    ]);
+
+    return {
+      ...meta,
+      questions: (lqqs ?? []).map((q: any) => ({
+        position: q.position,
+        difficulty: q.difficulty,
+        text: q.questions?.question ?? "",
+        options: q.questions?.options ?? [],
+        images: q.questions?.images ?? [],
+      })),
+      my_answers: mine ?? [],
+    };
   });
 
 export const submitAnswer = createServerFn({ method: "POST" })
@@ -128,18 +128,21 @@ export const submitAnswer = createServerFn({ method: "POST" })
     const cls = await getUserClass(context);
     const { data: quiz } = await context.supabase
       .from("live_quizzes")
-      .select("id, class_level, status, question_seconds, current_question_index, current_question_start_at")
+      .select("id, class_level, status, question_seconds, questions_total, started_at, scheduled_at")
       .eq("id", data.quiz_id)
       .maybeSingle();
     if (!quiz) throw new Error("Quiz not found");
     if (quiz.class_level !== cls) throw new Error("Wrong class");
     if (quiz.status !== "live") throw new Error("Quiz not live");
-    if (data.position !== quiz.current_question_index) throw new Error("Wrong question");
-    const startedAt = new Date(quiz.current_question_start_at as string).getTime();
-    const elapsed = Date.now() - startedAt;
-    if (elapsed > quiz.question_seconds * 1000 + 2000) throw new Error("Time expired");
 
-    // Look up correct answer
+    // Server-time derived window — no per-question DB state involved.
+    const anchor = new Date((quiz.started_at ?? quiz.scheduled_at) as string).getTime();
+    const dur = (quiz.question_seconds ?? 90) * 1000;
+    const elapsedTotal = Date.now() - anchor;
+    const serverIndex = Math.floor(elapsedTotal / dur);
+    if (data.position !== serverIndex) throw new Error("Question window closed");
+    const responseMs = elapsedTotal - serverIndex * dur;
+
     const { data: lqq } = await context.supabase
       .from("live_quiz_questions")
       .select("question_id, questions(correct_answer)")
@@ -151,6 +154,7 @@ export const submitAnswer = createServerFn({ method: "POST" })
     const correctIdx = typeof correctRaw === "number" ? correctRaw : Number(correctRaw);
     const isCorrect = data.selected_index === correctIdx;
 
+    // Lightweight write only: one insert. Scoring/ranking happens at the end.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("live_quiz_answers").insert({
       live_quiz_id: quiz.id,
@@ -159,45 +163,15 @@ export const submitAnswer = createServerFn({ method: "POST" })
       question_id: lqq.question_id,
       selected_index: data.selected_index,
       is_correct: isCorrect,
-      response_ms: elapsed,
+      response_ms: responseMs,
     });
     if (error) {
-      // Unique violation = already answered
       if (String(error.message).toLowerCase().includes("duplicate")) throw new Error("Already answered");
       throw error;
     }
-
-    // Update participant aggregates
-    const { data: part } = await supabaseAdmin
-      .from("live_quiz_participants")
-      .select("id, score, correct_count, answered_count, total_time_ms")
-      .eq("live_quiz_id", quiz.id)
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (part) {
-      await supabaseAdmin
-        .from("live_quiz_participants")
-        .update({
-          score: part.score + (isCorrect ? 10 : 0),
-          correct_count: part.correct_count + (isCorrect ? 1 : 0),
-          answered_count: part.answered_count + 1,
-          total_time_ms: part.total_time_ms + elapsed,
-          last_submit_at: new Date().toISOString(),
-        })
-        .eq("id", part.id);
-    } else {
-      await supabaseAdmin.from("live_quiz_participants").insert({
-        live_quiz_id: quiz.id,
-        user_id: context.userId,
-        score: isCorrect ? 10 : 0,
-        correct_count: isCorrect ? 1 : 0,
-        answered_count: 1,
-        total_time_ms: elapsed,
-        last_submit_at: new Date().toISOString(),
-      });
-    }
     return { ok: true, is_correct: isCorrect };
   });
+
 
 export const getLeaderboard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
