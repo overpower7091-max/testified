@@ -28,7 +28,6 @@ import { Route as AuthenticatedSubjectIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedPracticeChapterIdRouteImport } from './routes/_authenticated/practice.$chapterId'
 import { Route as AuthenticatedAdminLiveQuizRouteImport } from './routes/_authenticated/admin.live-quiz'
 import { Route as AuthenticatedAdminContentIndexRouteImport } from './routes/_authenticated/admin.content.index'
-import { Route as ApiPublicHooksLqProbeRouteImport } from './routes/api/public/hooks/lq-probe'
 import { Route as ApiPublicHooksLiveQuizTickRouteImport } from './routes/api/public/hooks/live-quiz-tick'
 import { Route as AuthenticatedPracticeTopicTopicIdRouteImport } from './routes/_authenticated/practice.topic.$topicId'
 import { Route as AuthenticatedHistorySessionSessionIdRouteImport } from './routes/_authenticated/history_.session.$sessionId'
@@ -135,11 +134,6 @@ const AuthenticatedAdminContentIndexRoute =
     path: '/content/',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const ApiPublicHooksLqProbeRoute = ApiPublicHooksLqProbeRouteImport.update({
-  id: '/api/public/hooks/lq-probe',
-  path: '/api/public/hooks/lq-probe',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicHooksLiveQuizTickRoute =
   ApiPublicHooksLiveQuizTickRouteImport.update({
     id: '/api/public/hooks/live-quiz-tick',
@@ -206,7 +200,6 @@ export interface FileRoutesByFullPath {
   '/history/session/$sessionId': typeof AuthenticatedHistorySessionSessionIdRoute
   '/practice/topic/$topicId': typeof AuthenticatedPracticeTopicTopicIdRoute
   '/api/public/hooks/live-quiz-tick': typeof ApiPublicHooksLiveQuizTickRoute
-  '/api/public/hooks/lq-probe': typeof ApiPublicHooksLqProbeRoute
   '/admin/content/': typeof AuthenticatedAdminContentIndexRoute
   '/admin/content/subject/$id': typeof AuthenticatedAdminContentSubjectIdRoute
   '/admin/content/topic/$id': typeof AuthenticatedAdminContentTopicIdRoute
@@ -233,7 +226,6 @@ export interface FileRoutesByTo {
   '/history/session/$sessionId': typeof AuthenticatedHistorySessionSessionIdRoute
   '/practice/topic/$topicId': typeof AuthenticatedPracticeTopicTopicIdRoute
   '/api/public/hooks/live-quiz-tick': typeof ApiPublicHooksLiveQuizTickRoute
-  '/api/public/hooks/lq-probe': typeof ApiPublicHooksLqProbeRoute
   '/admin/content': typeof AuthenticatedAdminContentIndexRoute
   '/admin/content/subject/$id': typeof AuthenticatedAdminContentSubjectIdRoute
   '/admin/content/topic/$id': typeof AuthenticatedAdminContentTopicIdRoute
@@ -263,7 +255,6 @@ export interface FileRoutesById {
   '/_authenticated/history_/session/$sessionId': typeof AuthenticatedHistorySessionSessionIdRoute
   '/_authenticated/practice/topic/$topicId': typeof AuthenticatedPracticeTopicTopicIdRoute
   '/api/public/hooks/live-quiz-tick': typeof ApiPublicHooksLiveQuizTickRoute
-  '/api/public/hooks/lq-probe': typeof ApiPublicHooksLqProbeRoute
   '/_authenticated/admin/content/': typeof AuthenticatedAdminContentIndexRoute
   '/_authenticated/admin/content/subject/$id': typeof AuthenticatedAdminContentSubjectIdRoute
   '/_authenticated/admin/content/topic/$id': typeof AuthenticatedAdminContentTopicIdRoute
@@ -293,7 +284,6 @@ export interface FileRouteTypes {
     | '/history/session/$sessionId'
     | '/practice/topic/$topicId'
     | '/api/public/hooks/live-quiz-tick'
-    | '/api/public/hooks/lq-probe'
     | '/admin/content/'
     | '/admin/content/subject/$id'
     | '/admin/content/topic/$id'
@@ -320,7 +310,6 @@ export interface FileRouteTypes {
     | '/history/session/$sessionId'
     | '/practice/topic/$topicId'
     | '/api/public/hooks/live-quiz-tick'
-    | '/api/public/hooks/lq-probe'
     | '/admin/content'
     | '/admin/content/subject/$id'
     | '/admin/content/topic/$id'
@@ -349,7 +338,6 @@ export interface FileRouteTypes {
     | '/_authenticated/history_/session/$sessionId'
     | '/_authenticated/practice/topic/$topicId'
     | '/api/public/hooks/live-quiz-tick'
-    | '/api/public/hooks/lq-probe'
     | '/_authenticated/admin/content/'
     | '/_authenticated/admin/content/subject/$id'
     | '/_authenticated/admin/content/topic/$id'
@@ -362,7 +350,6 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SuspendedRoute: typeof SuspendedRoute
   ApiPublicHooksLiveQuizTickRoute: typeof ApiPublicHooksLiveQuizTickRoute
-  ApiPublicHooksLqProbeRoute: typeof ApiPublicHooksLqProbeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -500,13 +487,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminContentIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/api/public/hooks/lq-probe': {
-      id: '/api/public/hooks/lq-probe'
-      path: '/api/public/hooks/lq-probe'
-      fullPath: '/api/public/hooks/lq-probe'
-      preLoaderRoute: typeof ApiPublicHooksLqProbeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/hooks/live-quiz-tick': {
       id: '/api/public/hooks/live-quiz-tick'
       path: '/api/public/hooks/live-quiz-tick'
@@ -627,8 +607,17 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SuspendedRoute: SuspendedRoute,
   ApiPublicHooksLiveQuizTickRoute: ApiPublicHooksLiveQuizTickRoute,
-  ApiPublicHooksLqProbeRoute: ApiPublicHooksLqProbeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
