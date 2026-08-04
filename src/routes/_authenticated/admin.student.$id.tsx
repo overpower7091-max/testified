@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, ShieldAlert, ShieldCheck, Trophy, Flame, Sparkles, Target, Clock, User } from "lucide-react";
+import { Loader2, ShieldAlert, ShieldCheck, Trophy, Flame, Sparkles, Target, Clock, User, TrendingUp, Radio } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/app-header";
 import { supabase } from "@/integrations/supabase/client";
+import { AreaTrend, EmptyChart, groupSessions, sessionsToSeries, PALETTES } from "@/components/perf-charts";
 
 export const Route = createFileRoute("/_authenticated/admin/student/$id")({
   head: () => ({ meta: [{ title: "Student profile — Admin" }] }),
@@ -16,31 +17,40 @@ type Profile = {
   banned_at: string | null; created_at: string; avatar_url: string | null;
 };
 
-type Attempt = { id: string; is_correct: boolean; time_seconds: number; created_at: string; subject_id: string | null };
+type Attempt = { id: string; is_correct: boolean; time_seconds: number; created_at: string; subject_id: string | null; session_id: string | null; topic_id: string | null };
+type LiveRow = { live_quiz_id: string; correct_count: number; answered_count: number; score: number; rank: number | null; quiz: { scheduled_at: string; questions_total: number; subject_id: string | null } | null };
 
 function StudentProfile() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [live, setLive] = useState<LiveRow[]>([]);
   const [subjectMap, setSubjectMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [reason, setReason] = useState("");
 
   const load = async () => {
-    const [{ data: p }, { data: a }, { data: subjects }] = await Promise.all([
+    const [{ data: p }, { data: a }, { data: subjects }, { data: lp }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
-      supabase.from("quiz_attempts").select("id, is_correct, time_seconds, created_at, subject_id").eq("user_id", id).order("created_at", { ascending: false }).limit(200),
+      supabase.from("quiz_attempts").select("id, is_correct, time_seconds, created_at, subject_id, session_id, topic_id").eq("user_id", id).order("created_at", { ascending: false }).limit(2000),
       supabase.from("subjects").select("id, name"),
+      supabase.from("live_quiz_participants")
+        .select("live_quiz_id, correct_count, answered_count, score, rank, live_quizzes(scheduled_at, questions_total, subject_id)")
+        .eq("user_id", id)
+        .limit(200),
     ]);
     setProfile(p as any);
     setAttempts((a ?? []) as any);
+    setLive(((lp ?? []) as any[]).map((r) => ({ ...r, quiz: r.live_quizzes ?? null })).filter((r) => r.quiz)
+      .sort((x, y) => (x.quiz.scheduled_at < y.quiz.scheduled_at ? -1 : 1)) as any);
     const map: Record<string, string> = {};
     (subjects ?? []).forEach((s: any) => (map[s.id] = s.name));
     setSubjectMap(map);
     setLoading(false);
   };
+
 
   useEffect(() => { load(); }, [id]);
 
@@ -67,6 +77,33 @@ function StudentProfile() {
     });
     return { total, correct, timeMin, accuracy, days, bySubject };
   }, [attempts]);
+
+  const sessions = useMemo(
+    () => groupSessions([...attempts].reverse(), (sid) => (sid ? subjectMap[sid] ?? "Practice" : "Practice")),
+    [attempts, subjectMap],
+  );
+  const overallSeries = useMemo(() => sessionsToSeries(sessions), [sessions]);
+  const perSubject = useMemo(() => {
+    const map = new Map<string, { subjectId: string | null; subjectName: string; sessions: typeof sessions }>();
+    for (const s of sessions) {
+      const key = s.subjectId ?? "unknown";
+      if (!map.has(key)) map.set(key, { subjectId: s.subjectId, subjectName: s.subjectName, sessions: [] });
+      map.get(key)!.sessions.push(s);
+    }
+    return Array.from(map.values());
+  }, [sessions]);
+  const liveSeries = useMemo(
+    () => live.map((r, i) => ({
+      label: `#${i + 1}`,
+      date: new Date(r.quiz!.scheduled_at).toLocaleDateString(),
+      accuracy: r.quiz!.questions_total ? Math.round((r.correct_count / r.quiz!.questions_total) * 100) : 0,
+    })),
+    [live],
+  );
+  const liveAvg = liveSeries.length ? Math.round(liveSeries.reduce((s, x) => s + x.accuracy, 0) / liveSeries.length) : 0;
+  const bestRank = live.reduce<number | null>((b, r) => (r.rank && (b === null || r.rank < b) ? r.rank : b), null);
+
+
 
   const toggleBan = async () => {
     if (!profile) return;
@@ -206,6 +243,72 @@ function StudentProfile() {
             </div>
           )}
         </div>
+
+        {/* Overall accuracy trend */}
+        <div className="glass rounded-3xl p-6">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /> Accuracy trend</h2>
+            <span className="text-xs text-muted-foreground">{sessions.length} quiz{sessions.length === 1 ? "" : "zes"} · most recent on the right</span>
+          </div>
+          <div className="mt-5 h-64">
+            {overallSeries.length < 2
+              ? <EmptyChart label="Needs at least 2 completed quizzes to plot a trend." />
+              : <AreaTrend data={overallSeries} gradientId="adminOverall" from="hsl(221 83% 60%)" to="hsl(199 89% 60%)" />}
+          </div>
+        </div>
+
+        {/* Subject-wise performance graphs */}
+        <div>
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <h2 className="text-lg font-semibold">Subject-wise performance</h2>
+            <span className="text-xs text-muted-foreground">accuracy % per quiz</span>
+          </div>
+          {perSubject.length === 0 ? (
+            <div className="glass rounded-3xl p-10 text-center text-sm text-muted-foreground">No quiz activity yet.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {perSubject.map((sub, i) => {
+                const series = sessionsToSeries(sub.sessions);
+                const palette = PALETTES[i % PALETTES.length];
+                const avg = series.length ? Math.round(series.reduce((s, x) => s + x.accuracy, 0) / series.length) : 0;
+                return (
+                  <div key={sub.subjectId ?? String(i)} className="glass rounded-3xl p-5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-semibold truncate">{sub.subjectName}</div>
+                        <div className="text-[11px] text-muted-foreground">{sub.sessions.length} quiz{sub.sessions.length === 1 ? "" : "zes"} · avg {avg}%</div>
+                      </div>
+                      <div className="text-xs font-semibold gradient-text">{avg}%</div>
+                    </div>
+                    <div className="mt-3 h-44">
+                      {series.length < 2
+                        ? <EmptyChart label="Not enough quizzes yet." />
+                        : <AreaTrend data={series} gradientId={`admin-sub-${i}`} from={palette.from} to={palette.to} compact />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Live quiz performance */}
+        <div className="glass rounded-3xl p-6">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2"><Radio className="h-4 w-4 text-primary" /> Live quiz performance</h2>
+            <span className="text-xs text-muted-foreground">
+              {live.length} participation{live.length === 1 ? "" : "s"}
+              {live.length ? ` · avg ${liveAvg}%` : ""}
+              {bestRank ? ` · best rank #${bestRank}` : ""}
+            </span>
+          </div>
+          <div className="mt-5 h-64">
+            {liveSeries.length < 2
+              ? <EmptyChart label="This student has not joined enough live quizzes yet." />
+              : <AreaTrend data={liveSeries} gradientId="adminLive" from="hsl(280 80% 65%)" to="hsl(320 80% 65%)" />}
+          </div>
+        </div>
+
       </main>
     </div>
   );
