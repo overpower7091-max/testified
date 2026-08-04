@@ -243,6 +243,72 @@ function StudentProfile() {
             </div>
           )}
         </div>
+
+        {/* Overall accuracy trend */}
+        <div className="glass rounded-3xl p-6">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /> Accuracy trend</h2>
+            <span className="text-xs text-muted-foreground">{sessions.length} quiz{sessions.length === 1 ? "" : "zes"} · most recent on the right</span>
+          </div>
+          <div className="mt-5 h-64">
+            {overallSeries.length < 2
+              ? <EmptyChart label="Needs at least 2 completed quizzes to plot a trend." />
+              : <AreaTrend data={overallSeries} gradientId="adminOverall" from="hsl(221 83% 60%)" to="hsl(199 89% 60%)" />}
+          </div>
+        </div>
+
+        {/* Subject-wise performance graphs */}
+        <div>
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <h2 className="text-lg font-semibold">Subject-wise performance</h2>
+            <span className="text-xs text-muted-foreground">accuracy % per quiz</span>
+          </div>
+          {perSubject.length === 0 ? (
+            <div className="glass rounded-3xl p-10 text-center text-sm text-muted-foreground">No quiz activity yet.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {perSubject.map((sub, i) => {
+                const series = sessionsToSeries(sub.sessions);
+                const palette = PALETTES[i % PALETTES.length];
+                const avg = series.length ? Math.round(series.reduce((s, x) => s + x.accuracy, 0) / series.length) : 0;
+                return (
+                  <div key={sub.subjectId ?? String(i)} className="glass rounded-3xl p-5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-semibold truncate">{sub.subjectName}</div>
+                        <div className="text-[11px] text-muted-foreground">{sub.sessions.length} quiz{sub.sessions.length === 1 ? "" : "zes"} · avg {avg}%</div>
+                      </div>
+                      <div className="text-xs font-semibold gradient-text">{avg}%</div>
+                    </div>
+                    <div className="mt-3 h-44">
+                      {series.length < 2
+                        ? <EmptyChart label="Not enough quizzes yet." />
+                        : <AreaTrend data={series} gradientId={`admin-sub-${i}`} from={palette.from} to={palette.to} compact />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Live quiz performance */}
+        <div className="glass rounded-3xl p-6">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2"><Radio className="h-4 w-4 text-primary" /> Live quiz performance</h2>
+            <span className="text-xs text-muted-foreground">
+              {live.length} participation{live.length === 1 ? "" : "s"}
+              {live.length ? ` · avg ${liveAvg}%` : ""}
+              {bestRank ? ` · best rank #${bestRank}` : ""}
+            </span>
+          </div>
+          <div className="mt-5 h-64">
+            {liveSeries.length < 2
+              ? <EmptyChart label="This student has not joined enough live quizzes yet." />
+              : <AreaTrend data={liveSeries} gradientId="adminLive" from="hsl(280 80% 65%)" to="hsl(320 80% 65%)" />}
+          </div>
+        </div>
+
       </main>
     </div>
   );
