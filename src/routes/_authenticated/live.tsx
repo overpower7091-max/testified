@@ -209,7 +209,7 @@ function QuizRunner({
 
   // While results are being computed, poll status until it flips to ended
   useEffect(() => {
-    if (status !== "awaiting_results" && status !== "scheduled") return;
+    if (status !== "awaiting_results" && status !== "scheduled" && status !== "configuration_required") return;
     const iv = setInterval(() => {
       reload().catch(() => null);
     }, 4000);
@@ -247,7 +247,7 @@ function QuizRunner({
     );
   }
 
-  if (status === "configuration_required" || status === "cancelled" || status === "error") {
+  if (status === "cancelled" || status === "error") {
     return (
       <div className="min-h-screen">
         <AppHeader back={{ to: "/home" }} />
@@ -260,6 +260,40 @@ function QuizRunner({
       </div>
     );
   }
+
+  if (status === "configuration_required") {
+    const startsInMs = new Date(session.scheduled_at).getTime() - (Date.now() + skewRef.current);
+    return (
+      <div className="min-h-screen">
+        <AppHeader back={{ to: "/home" }} />
+        <main className="mx-auto max-w-2xl px-4 py-10">
+          <div className="glass-strong rounded-3xl p-8 text-center">
+            <div className="text-xs uppercase tracking-widest text-primary/80">Live Quiz</div>
+            <h1 className="mt-2 text-3xl font-semibold gradient-text">{session.subject ?? "Today's quiz"}</h1>
+            <CountdownToStart
+              targetMs={new Date(session.scheduled_at).getTime()}
+              skewRef={skewRef}
+              onReached={() => reload().catch(() => null)}
+            />
+            <p className="mt-3 text-sm text-muted-foreground">
+              Starts at {new Date(session.scheduled_at).toLocaleTimeString()} — {session.questions_total} questions,{" "}
+              {session.question_seconds}s each.
+            </p>
+            <p className="mt-3 text-xs text-yellow-500">
+              {startsInMs > 6 * 60_000
+                ? "Questions are picked automatically a few minutes before the start."
+                : "Waiting for the question set to be prepared. If this persists, an admin needs to enable the blueprint for this class & subject."}
+            </p>
+            <button onClick={onLeave} className="mt-6 text-xs text-muted-foreground hover:text-primary">
+              ← Back
+            </button>
+          </div>
+          <SchedulePreview upcoming={upcoming} onOpen={() => {}} />
+        </main>
+      </div>
+    );
+  }
+
 
   if (status === "scheduled" || status === "generating") {
     return (
