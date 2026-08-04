@@ -209,7 +209,7 @@ function QuizRunner({
 
   // While results are being computed, poll status until it flips to ended
   useEffect(() => {
-    if (status !== "awaiting_results" && status !== "scheduled") return;
+    if (status !== "awaiting_results" && status !== "scheduled" && status !== "configuration_required") return;
     const iv = setInterval(() => {
       reload().catch(() => null);
     }, 4000);
