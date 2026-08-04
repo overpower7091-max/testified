@@ -78,6 +78,33 @@ function StudentProfile() {
     return { total, correct, timeMin, accuracy, days, bySubject };
   }, [attempts]);
 
+  const sessions = useMemo(
+    () => groupSessions([...attempts].reverse(), (sid) => (sid ? subjectMap[sid] ?? "Practice" : "Practice")),
+    [attempts, subjectMap],
+  );
+  const overallSeries = useMemo(() => sessionsToSeries(sessions), [sessions]);
+  const perSubject = useMemo(() => {
+    const map = new Map<string, { subjectId: string | null; subjectName: string; sessions: typeof sessions }>();
+    for (const s of sessions) {
+      const key = s.subjectId ?? "unknown";
+      if (!map.has(key)) map.set(key, { subjectId: s.subjectId, subjectName: s.subjectName, sessions: [] });
+      map.get(key)!.sessions.push(s);
+    }
+    return Array.from(map.values());
+  }, [sessions]);
+  const liveSeries = useMemo(
+    () => live.map((r, i) => ({
+      label: `#${i + 1}`,
+      date: new Date(r.quiz!.scheduled_at).toLocaleDateString(),
+      accuracy: r.quiz!.questions_total ? Math.round((r.correct_count / r.quiz!.questions_total) * 100) : 0,
+    })),
+    [live],
+  );
+  const liveAvg = liveSeries.length ? Math.round(liveSeries.reduce((s, x) => s + x.accuracy, 0) / liveSeries.length) : 0;
+  const bestRank = live.reduce<number | null>((b, r) => (r.rank && (b === null || r.rank < b) ? r.rank : b), null);
+
+
+
   const toggleBan = async () => {
     if (!profile) return;
     setSaving(true);
