@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, ShieldAlert, ShieldCheck, Trophy, Flame, Sparkles, Target, Clock, User } from "lucide-react";
+import { Loader2, ShieldAlert, ShieldCheck, Trophy, Flame, Sparkles, Target, Clock, User, TrendingUp, Radio } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/app-header";
 import { supabase } from "@/integrations/supabase/client";
+import { AreaTrend, EmptyChart, groupSessions, sessionsToSeries, PALETTES } from "@/components/perf-charts";
 
 export const Route = createFileRoute("/_authenticated/admin/student/$id")({
   head: () => ({ meta: [{ title: "Student profile — Admin" }] }),
