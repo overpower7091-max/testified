@@ -17,31 +17,40 @@ type Profile = {
   banned_at: string | null; created_at: string; avatar_url: string | null;
 };
 
-type Attempt = { id: string; is_correct: boolean; time_seconds: number; created_at: string; subject_id: string | null };
+type Attempt = { id: string; is_correct: boolean; time_seconds: number; created_at: string; subject_id: string | null; session_id: string | null; topic_id: string | null };
+type LiveRow = { live_quiz_id: string; correct_count: number; answered_count: number; score: number; rank: number | null; quiz: { scheduled_at: string; questions_total: number; subject_id: string | null } | null };
 
 function StudentProfile() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [live, setLive] = useState<LiveRow[]>([]);
   const [subjectMap, setSubjectMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [reason, setReason] = useState("");
 
   const load = async () => {
-    const [{ data: p }, { data: a }, { data: subjects }] = await Promise.all([
+    const [{ data: p }, { data: a }, { data: subjects }, { data: lp }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
-      supabase.from("quiz_attempts").select("id, is_correct, time_seconds, created_at, subject_id").eq("user_id", id).order("created_at", { ascending: false }).limit(200),
+      supabase.from("quiz_attempts").select("id, is_correct, time_seconds, created_at, subject_id, session_id, topic_id").eq("user_id", id).order("created_at", { ascending: false }).limit(2000),
       supabase.from("subjects").select("id, name"),
+      supabase.from("live_quiz_participants")
+        .select("live_quiz_id, correct_count, answered_count, score, rank, live_quizzes(scheduled_at, questions_total, subject_id)")
+        .eq("user_id", id)
+        .limit(200),
     ]);
     setProfile(p as any);
     setAttempts((a ?? []) as any);
+    setLive(((lp ?? []) as any[]).map((r) => ({ ...r, quiz: r.live_quizzes ?? null })).filter((r) => r.quiz)
+      .sort((x, y) => (x.quiz.scheduled_at < y.quiz.scheduled_at ? -1 : 1)) as any);
     const map: Record<string, string> = {};
     (subjects ?? []).forEach((s: any) => (map[s.id] = s.name));
     setSubjectMap(map);
     setLoading(false);
   };
+
 
   useEffect(() => { load(); }, [id]);
 
