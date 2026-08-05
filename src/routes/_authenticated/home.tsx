@@ -119,7 +119,7 @@ function Home() {
                 <Link to="/subjects" className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium">
                   Start practising <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link to="/mock" className="glass inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium hover:text-primary transition-colors">
+                <Link to="/live" className="glass inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium hover:text-primary transition-colors">
                   <Radio className="h-4 w-4 text-primary" /> Join live mock
                 </Link>
               </div>
@@ -197,7 +197,7 @@ function Home() {
             <h2 className="text-lg font-semibold">Quick actions</h2>
             <div className="mt-4 space-y-2.5">
               <QuickAction to="/subjects" icon={<ClipboardList className="h-4 w-4" />} title="Daily Quiz" desc="Today's challenge" />
-              <QuickAction to="/mock" icon={<Radio className="h-4 w-4" />} title="Live Quiz" desc="Scheduled mocks" />
+              <QuickAction to="/live" icon={<Radio className="h-4 w-4" />} title="Live Quiz" desc="Scheduled mocks" />
               <QuickAction to="/mock" icon={<Brain className="h-4 w-4" />} title="AI Doubt Solver" desc="Coming soon" />
               <QuickAction to="/leaderboard" icon={<Trophy className="h-4 w-4" />} title="Leaderboard" desc="Compete in your class" />
               <QuickAction to="/history" icon={<History className="h-4 w-4" />} title="Quiz History" desc="Review attempts" />
