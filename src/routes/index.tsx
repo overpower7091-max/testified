@@ -50,9 +50,10 @@ function Landing() {
           For WBBSE students · Classes 6 to 12
         </span>
         <h1 className="mt-6 text-5xl leading-[1.05] tracking-[-0.04em] sm:text-6xl lg:text-7xl">
-          Master <em className="font-serif not-italic italic text-white/80">Science</em> &{" "}
-          <em className="font-serif not-italic italic text-white/80">Math</em>{" "}
-          one MCQ at a time.
+          Master <em className="font-serif not-italic italic text-white/80">Math</em> &{" "}
+          <em className="font-serif not-italic italic text-white/80">Science</em>&nbsp;
+          <div className="mt-2 text-[0.6em] opacity-60">with&nbsp;</div>
+          <div className="text-white">Live MCQ Challenges</div>
         </h1>
         <p className="mt-5 max-w-xl text-base text-white/70">
           Quality question banks, live mock tests, and instant analytics —
