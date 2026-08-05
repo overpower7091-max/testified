@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  Flame, Trophy, Target, Sparkles, BookOpen,
+  Flame, Trophy, Target, Sparkles, BookOpen, Crown,
   History, Radio, ClipboardList, Brain, Loader2,
   ArrowRight, Calculator, Atom, FlaskConical, Leaf, TrendingUp, Clock, CheckCircle2, XCircle,
 } from "lucide-react";
@@ -9,7 +9,16 @@ import { AppHeader } from "@/components/app-header";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/home")({
-  head: () => ({ meta: [{ title: "Dashboard — Testified" }] }),
+  head: () => ({
+    meta: [
+      { title: "Student Dashboard — Testified" },
+      { name: "description", content: "Track MCQ practice, live quiz results, goals, and performance on your Testified dashboard." },
+      { property: "og:title", content: "Student Dashboard — Testified" },
+      { property: "og:description", content: "Track MCQ practice, live quiz results, goals, and performance on Testified." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Home,
 });
 
@@ -32,6 +41,7 @@ function Home() {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [attempts, setAttempts] = useState<any[]>([]);
   const [rank, setRank] = useState<number | null>(null);
+  const [liveTopper, setLiveTopper] = useState<{ name: string; score: number; subject: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,6 +59,36 @@ function Home() {
 
       setProfile(p);
       setIsAdmin(!!roles?.some((r: any) => r.role === "admin"));
+
+      // Most recent daily live-quiz topper for this student's class.
+      if (p.class) {
+        const { data: latestQuiz } = await supabase.from("live_quizzes")
+          .select("id, subject:subjects(name)")
+          .eq("class_level", p.class)
+          .eq("status", "ended")
+          .order("ended_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (latestQuiz) {
+          const { data: winner } = await supabase.from("live_quiz_participants")
+            .select("user_id, score")
+            .eq("live_quiz_id", latestQuiz.id)
+            .order("score", { ascending: false })
+            .order("total_time_ms", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          if (winner) {
+            const { data: winnerProfile } = await supabase.from("profiles")
+              .select("full_name")
+              .eq("id", winner.user_id)
+              .maybeSingle();
+            if (winnerProfile) {
+              const subject = Array.isArray(latestQuiz.subject) ? latestQuiz.subject[0]?.name : latestQuiz.subject?.name;
+              setLiveTopper({ name: winnerProfile.full_name || "Student", score: winner.score, subject: subject || "Live Quiz" });
+            }
+          }
+        }
+      }
 
       // Subjects for user's class
       const { data: cls } = p.class ? await supabase.from("classes").select("id").eq("level", p.class).maybeSingle() : { data: null };
@@ -119,10 +159,23 @@ function Home() {
                 <Link to="/subjects" className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium">
                   Start practising <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link to="/live" className="glass inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium hover:text-primary transition-colors">
-                  <Radio className="h-4 w-4 text-primary" /> Join live mock
+                <Link to="/live" className="inline-flex items-center gap-2 rounded-full border border-danger/60 bg-danger px-5 py-2.5 text-sm font-semibold text-destructive-foreground shadow-lg shadow-danger/20 transition-transform hover:scale-[1.03] active:scale-95">
+                  <Radio className="h-4 w-4" /> Join live mock
                 </Link>
               </div>
+
+              {liveTopper && (
+                <Link to="/leaderboard" className="topper-banner mt-5 flex max-w-xl items-center gap-3 overflow-hidden rounded-2xl border border-warning/35 bg-warning/10 px-4 py-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-warning/20 text-warning">
+                    <Crown className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-warning">Class {profile.class} · Daily live topper</div>
+                    <div className="truncate text-sm font-semibold"><span className="topper-name">{liveTopper.name}</span> topped {liveTopper.subject} with {liveTopper.score} points</div>
+                  </div>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-warning" />
+                </Link>
+              )}
 
               <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <Stat icon={<Trophy className="h-4 w-4" />} label="Rank" value={rank ? `#${rank}` : "—"} />

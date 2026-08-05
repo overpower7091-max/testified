@@ -143,8 +143,34 @@
     transform: translateY(-1px);
     box-shadow: 0 14px 30px -10px color-mix(in oklab, var(--primary) 72%, transparent);
   }
+  .topper-banner {
+    animation: topper-enter .55s ease-out both, topper-glow 2.4s ease-in-out .55s infinite;
+  }
+  .topper-name {
+    color: var(--warning);
+    animation: topper-name 1.8s ease-in-out infinite;
+  }
 
   /* Legacy classes kept as no-op shims so any remaining usages don't break */
   .liquid-glass { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.10); border-radius: inherit; }
   .liquid-glass-strong { background: rgba(255,255,255,0.10); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.14); border-radius: inherit; }
+}
+
+@keyframes topper-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes topper-glow {
+  0%, 100% { box-shadow: 0 0 0 color-mix(in oklab, var(--warning) 0%, transparent); }
+  50% { box-shadow: 0 0 24px color-mix(in oklab, var(--warning) 22%, transparent); }
+}
+
+@keyframes topper-name {
+  0%, 100% { opacity: .8; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topper-banner, .topper-name { animation: none; }
 }
