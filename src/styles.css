@@ -52,31 +52,31 @@
 .dark {
   color-scheme: dark;
   --radius: 1.25rem;
-  --background: hsl(222 30% 6%);
-  --foreground: hsl(210 30% 96%);
-  --card: hsl(222 26% 11%);
-  --card-foreground: hsl(210 30% 96%);
-  --popover: hsl(222 26% 11%);
-  --popover-foreground: hsl(210 30% 96%);
-  --primary: hsl(217 91% 62%);
-  --primary-foreground: hsl(222 40% 8%);
-  --secondary: hsl(217 91% 60%);
-  --secondary-foreground: hsl(222 40% 8%);
-  --muted: hsl(222 20% 16%);
-  --muted-foreground: hsl(215 20% 68%);
-  --accent: hsl(199 89% 62%);
-  --accent-foreground: hsl(222 40% 8%);
-  --destructive: hsl(0 72% 55%);
-  --destructive-foreground: hsl(0 0% 100%);
-  --border: hsl(217 20% 24%);
-  --input: hsl(217 20% 24%);
-  --ring: hsl(217 91% 62%);
-  --brand: hsl(217 91% 62%);
-  --brand-2: hsl(221 83% 60%);
-  --brand-3: hsl(199 89% 62%);
-  --success: hsl(142 66% 50%);
-  --warning: hsl(38 92% 55%);
-  --danger: hsl(0 72% 58%);
+  --background: oklch(0.14 0.025 255);
+  --foreground: oklch(0.97 0.01 245);
+  --card: oklch(0.2 0.035 252);
+  --card-foreground: oklch(0.97 0.01 245);
+  --popover: oklch(0.2 0.035 252);
+  --popover-foreground: oklch(0.97 0.01 245);
+  --primary: oklch(0.7 0.18 250);
+  --primary-foreground: oklch(0.14 0.025 255);
+  --secondary: oklch(0.75 0.15 195);
+  --secondary-foreground: oklch(0.14 0.025 255);
+  --muted: oklch(0.25 0.03 252);
+  --muted-foreground: oklch(0.76 0.035 245);
+  --accent: oklch(0.78 0.16 185);
+  --accent-foreground: oklch(0.14 0.025 255);
+  --destructive: oklch(0.66 0.22 25);
+  --destructive-foreground: oklch(0.98 0.01 25);
+  --border: oklch(0.42 0.065 245);
+  --input: oklch(0.35 0.055 245);
+  --ring: oklch(0.7 0.18 250);
+  --brand: oklch(0.7 0.18 250);
+  --brand-2: oklch(0.68 0.2 270);
+  --brand-3: oklch(0.78 0.16 185);
+  --success: oklch(0.75 0.18 150);
+  --warning: oklch(0.82 0.17 80);
+  --danger: oklch(0.68 0.22 25);
 }
 
 @layer base {
@@ -92,9 +92,8 @@
     font-weight: 400;
     background-color: var(--color-background);
     background-image:
-      radial-gradient(1000px 600px at -10% -10%, hsl(217 91% 60% / 0.20), transparent 60%),
-      radial-gradient(900px 700px at 110% 10%, hsl(199 89% 60% / 0.16), transparent 55%),
-      radial-gradient(1200px 800px at 50% 120%, hsl(221 83% 53% / 0.18), transparent 60%);
+      linear-gradient(145deg, color-mix(in oklab, var(--brand-2) 14%, transparent), transparent 38%),
+      linear-gradient(315deg, color-mix(in oklab, var(--brand-3) 11%, transparent), transparent 42%);
     background-attachment: fixed;
   }
   h1, h2, h3, h4, h5, h6 {
@@ -105,44 +104,44 @@
 
 @layer components {
   .glass {
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(24px) saturate(140%);
-    -webkit-backdrop-filter: blur(24px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: color-mix(in oklab, var(--card) 78%, transparent);
+    backdrop-filter: blur(24px) saturate(165%);
+    -webkit-backdrop-filter: blur(24px) saturate(165%);
+    border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.10) inset,
       0 20px 40px -20px rgba(0, 0, 0, 0.55);
   }
   .glass-strong {
-    background: rgba(255, 255, 255, 0.10);
-    backdrop-filter: blur(30px) saturate(160%);
-    -webkit-backdrop-filter: blur(30px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: color-mix(in oklab, var(--card) 91%, transparent);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid color-mix(in oklab, var(--border) 88%, transparent);
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.14) inset,
       0 30px 60px -25px rgba(0, 0, 0, 0.6);
   }
   .glass-tint {
-    background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(56,189,248,0.10));
+    background: linear-gradient(135deg, color-mix(in oklab, var(--primary) 28%, transparent), color-mix(in oklab, var(--accent) 16%, transparent));
     backdrop-filter: blur(20px) saturate(140%);
     -webkit-backdrop-filter: blur(20px) saturate(140%);
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid color-mix(in oklab, var(--primary) 30%, var(--border));
   }
   .gradient-text {
-    background: linear-gradient(135deg, hsl(217 91% 68%), hsl(199 89% 66%));
+    background: linear-gradient(135deg, var(--primary), var(--accent));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .btn-gradient {
-    background: linear-gradient(135deg, hsl(221 83% 56%), hsl(217 91% 64%));
-    color: white;
-    box-shadow: 0 10px 25px -10px hsl(221 83% 53% / 0.6);
+    background: linear-gradient(135deg, var(--brand-2), var(--primary));
+    color: var(--foreground);
+    box-shadow: 0 10px 25px -10px color-mix(in oklab, var(--brand-2) 65%, transparent);
     transition: transform .2s ease, box-shadow .2s ease;
   }
   .btn-gradient:hover {
     transform: translateY(-1px);
-    box-shadow: 0 14px 30px -10px hsl(221 83% 53% / 0.7);
+    box-shadow: 0 14px 30px -10px color-mix(in oklab, var(--primary) 72%, transparent);
   }
 
   /* Legacy classes kept as no-op shims so any remaining usages don't break */
