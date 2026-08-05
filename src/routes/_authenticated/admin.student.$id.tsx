@@ -18,7 +18,7 @@ type Profile = {
 };
 
 type Attempt = { id: string; is_correct: boolean; time_seconds: number; created_at: string; subject_id: string | null; session_id: string | null; topic_id: string | null };
-type LiveRow = { live_quiz_id: string; correct_count: number; answered_count: number; score: number; rank: number | null; quiz: { scheduled_at: string; questions_total: number; subject_id: string | null } | null };
+type LiveRow = { live_quiz_id: string; correct_count: number; answered_count: number; score: number; rank: number | null; total_time_ms: number; finished_at: string | null; quiz: { scheduled_at: string; questions_total: number; subject_id: string | null } | null };
 
 function StudentProfile() {
   const { id } = Route.useParams();
@@ -37,7 +37,7 @@ function StudentProfile() {
       supabase.from("quiz_attempts").select("id, is_correct, time_seconds, created_at, subject_id, session_id, topic_id").eq("user_id", id).order("created_at", { ascending: false }).limit(2000),
       supabase.from("subjects").select("id, name"),
       supabase.from("live_quiz_participants")
-        .select("live_quiz_id, correct_count, answered_count, score, rank, live_quizzes(scheduled_at, questions_total, subject_id)")
+        .select("live_quiz_id, correct_count, answered_count, score, rank, total_time_ms, finished_at, live_quizzes(scheduled_at, questions_total, subject_id)")
         .eq("user_id", id)
         .limit(200),
     ]);
@@ -307,6 +307,38 @@ function StudentProfile() {
               ? <EmptyChart label="This student has not joined enough live quizzes yet." />
               : <AreaTrend data={liveSeries} gradientId="adminLive" from="hsl(280 80% 65%)" to="hsl(320 80% 65%)" />}
           </div>
+        </div>
+
+        {/* Live quiz attempt history */}
+        <div className="glass rounded-3xl p-6">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold flex items-center gap-2"><Trophy className="h-4 w-4 text-warning" /> Live quiz attempt history</h2>
+            <span className="text-xs text-muted-foreground">{live.filter((row) => row.answered_count > 0).length} attempted</span>
+          </div>
+          {live.filter((row) => row.answered_count > 0).length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">This student has not attempted a live quiz yet.</p>
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[680px] text-left text-sm">
+                <thead className="text-xs uppercase text-muted-foreground">
+                  <tr className="border-b border-border"><th className="px-3 py-3">Quiz</th><th className="px-3 py-3">Date</th><th className="px-3 py-3">Answered</th><th className="px-3 py-3">Correct</th><th className="px-3 py-3">Score</th><th className="px-3 py-3">Rank</th><th className="px-3 py-3">Time</th></tr>
+                </thead>
+                <tbody>
+                  {[...live].filter((row) => row.answered_count > 0).reverse().map((row) => (
+                    <tr key={row.live_quiz_id} className="border-b border-border/60 last:border-0">
+                      <td className="px-3 py-3 font-medium">{row.quiz?.subject_id ? subjectMap[row.quiz.subject_id] ?? "Live Quiz" : "Live Quiz"}</td>
+                      <td className="px-3 py-3 text-muted-foreground">{row.quiz ? new Date(row.quiz.scheduled_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "—"}</td>
+                      <td className="px-3 py-3">{row.answered_count}/{row.quiz?.questions_total ?? "—"}</td>
+                      <td className="px-3 py-3 text-success">{row.correct_count}</td>
+                      <td className="px-3 py-3 font-semibold">{row.score}</td>
+                      <td className="px-3 py-3">{row.rank ? `#${row.rank}` : "—"}</td>
+                      <td className="px-3 py-3 text-muted-foreground">{Math.round(row.total_time_ms / 1000)}s</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
       </main>
