@@ -42,6 +42,7 @@ function Home() {
   const [attempts, setAttempts] = useState<any[]>([]);
   const [rank, setRank] = useState<number | null>(null);
   const [liveTopper, setLiveTopper] = useState<{ name: string; score: number; subject: string } | null>(null);
+  const [latestLiveQuiz, setLatestLiveQuiz] = useState<{ subject: string; hasAttempts: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -71,19 +72,22 @@ function Home() {
           .maybeSingle();
         if (latestQuiz) {
           const { data: winner } = await supabase.from("live_quiz_participants")
-            .select("user_id, score")
+            .select("user_id, score, answered_count")
             .eq("live_quiz_id", latestQuiz.id)
+            .gt("answered_count", 0)
             .order("score", { ascending: false })
+            .order("correct_count", { ascending: false })
             .order("total_time_ms", { ascending: true })
             .limit(1)
             .maybeSingle();
+          const subject = Array.isArray(latestQuiz.subject) ? latestQuiz.subject[0]?.name : latestQuiz.subject?.name;
+          setLatestLiveQuiz({ subject: subject || "Live Quiz", hasAttempts: Boolean(winner) });
           if (winner) {
             const { data: winnerProfile } = await supabase.from("profiles")
               .select("full_name")
               .eq("id", winner.user_id)
               .maybeSingle();
             if (winnerProfile) {
-              const subject = Array.isArray(latestQuiz.subject) ? latestQuiz.subject[0]?.name : latestQuiz.subject?.name;
               setLiveTopper({ name: winnerProfile.full_name || "Student", score: winner.score, subject: subject || "Live Quiz" });
             }
           }
@@ -175,6 +179,17 @@ function Home() {
                   </div>
                   <ArrowRight className="h-4 w-4 shrink-0 text-warning" />
                 </Link>
+              )}
+              {latestLiveQuiz && !latestLiveQuiz.hasAttempts && (
+                <div className="topper-banner mt-5 flex max-w-xl items-center gap-3 rounded-2xl border border-border bg-muted/60 px-4 py-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                    <Crown className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Class {profile.class} · {latestLiveQuiz.subject}</div>
+                    <div className="text-sm font-semibold">No one has attempted this quiz.</div>
+                  </div>
+                </div>
               )}
 
               <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2">

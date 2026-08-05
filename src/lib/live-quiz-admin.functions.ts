@@ -14,19 +14,12 @@ type SaveInput = {
   topics: { topic_id: string; question_count: number }[];
 };
 
-async function requireAdmin(ctx: any) {
-  const { data, error } = await ctx.supabase.rpc("has_role", {
-    _user_id: ctx.userId,
-    _role: "admin",
-  });
-  if (error || !data) throw new Error("Forbidden");
-}
-
 export const saveBlueprint = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: SaveInput) => d)
   .handler(async ({ data, context }) => {
-    await requireAdmin(context);
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (roleError || !isAdmin) throw new Error("Forbidden");
     const topicSum = data.topics.reduce((s, t) => s + t.question_count, 0);
     const diffSum = data.difficulty_easy + data.difficulty_medium + data.difficulty_hard;
     if (topicSum !== data.questions_total)
@@ -104,7 +97,8 @@ export const getBlueprint = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { class_level: string; subject_id: string }) => d)
   .handler(async ({ data, context }) => {
-    await requireAdmin(context);
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (roleError || !isAdmin) throw new Error("Forbidden");
     const { data: bp } = await context.supabase
       .from("live_quiz_blueprints")
       .select("*")
@@ -122,7 +116,8 @@ export const getBlueprint = createServerFn({ method: "POST" })
 export const listBlueprints = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await requireAdmin(context);
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (roleError || !isAdmin) throw new Error("Forbidden");
     const { data } = await context.supabase
       .from("live_quiz_blueprints")
       .select("*, subjects(name, slug, class_id, classes(level))")
@@ -134,7 +129,8 @@ export const listBlueprintVersions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { blueprint_id: string }) => d)
   .handler(async ({ data, context }) => {
-    await requireAdmin(context);
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (roleError || !isAdmin) throw new Error("Forbidden");
     const { data: versions } = await context.supabase
       .from("live_quiz_blueprint_versions")
       .select("*")
@@ -148,7 +144,8 @@ export const listBlueprintVersions = createServerFn({ method: "POST" })
 export const runSchedulerNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await requireAdmin(context);
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (roleError || !isAdmin) throw new Error("Forbidden");
     const { runLiveQuizTick } = await import("./live-quiz-scheduler.server");
     const result = await runLiveQuizTick();
     return result;
@@ -159,7 +156,8 @@ export const adminScheduleNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { class_level: string; subject_id: string; minutes_from_now?: number }) => d)
   .handler(async ({ data, context }) => {
-    await requireAdmin(context);
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (roleError || !isAdmin) throw new Error("Forbidden");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const when = new Date(Date.now() + (data.minutes_from_now ?? 1) * 60_000);
     // Round to minute
@@ -197,4 +195,44 @@ export const adminScheduleNow = createServerFn({ method: "POST" })
     const { runLiveQuizTick } = await import("./live-quiz-scheduler.server");
     await runLiveQuizTick();
     return { ok: true, live_quiz_id: q.id, scheduled_at: when.toISOString() };
+  });
+
+export const listAdminLiveQuizResults = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { class_level: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (roleError || !isAdmin) throw new Error("Forbidden");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: quizzes, error: quizError } = await supabaseAdmin
+      .from("live_quizzes")
+      .select("id, scheduled_at, ended_at, status, questions_total, subjects(name)")
+      .eq("class_level", data.class_level as any)
+      .order("scheduled_at", { ascending: false })
+      .limit(30);
+    if (quizError) throw quizError;
+
+    const quizIds = (quizzes ?? []).map((quiz) => quiz.id);
+    if (!quizIds.length) return { quizzes: [], participants: [] };
+    const { data: participants, error: participantError } = await supabaseAdmin
+      .from("live_quiz_participants")
+      .select("live_quiz_id, user_id, score, correct_count, answered_count, total_time_ms, rank, joined_at, finished_at")
+      .in("live_quiz_id", quizIds)
+      .order("score", { ascending: false })
+      .order("correct_count", { ascending: false })
+      .order("total_time_ms", { ascending: true });
+    if (participantError) throw participantError;
+
+    const userIds = [...new Set((participants ?? []).map((row) => row.user_id))];
+    const { data: profiles, error: profileError } = userIds.length
+      ? await supabaseAdmin.from("profiles").select("id, full_name, avatar_url").in("id", userIds)
+      : { data: [], error: null };
+    if (profileError) throw profileError;
+    const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+
+    return {
+      quizzes: quizzes ?? [],
+      participants: (participants ?? []).map((row) => ({ ...row, profile: profileById.get(row.user_id) ?? null })),
+    };
   });
