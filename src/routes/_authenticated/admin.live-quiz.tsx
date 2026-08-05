@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppHeader } from "@/components/app-header";
@@ -8,12 +8,20 @@ import {
   getBlueprint,
   runSchedulerNow,
   adminScheduleNow,
+  listAdminLiveQuizResults,
 } from "@/lib/live-quiz-admin.functions";
 import { toast } from "sonner";
-import { Loader2, Save, Play, Zap, Plus, Trash2 } from "lucide-react";
+import { Loader2, Save, Play, Zap, Plus, Trash2, Trophy, Users, History } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/live-quiz")({
-  head: () => ({ meta: [{ title: "Live Quiz Configuration — Admin" }] }),
+  head: () => ({ meta: [
+    { title: "Live Quiz Admin — Testified" },
+    { name: "description", content: "Configure live quizzes and review class leaderboards and student results." },
+    { property: "og:title", content: "Live Quiz Admin — Testified" },
+    { property: "og:description", content: "Configure live quizzes and review class leaderboards and student results." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: LiveQuizConfig,
 });
 
@@ -36,11 +44,29 @@ function LiveQuizConfig() {
   const [active, setActive] = useState(true);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resultLoading, setResultLoading] = useState(false);
+  const [resultData, setResultData] = useState<any>({ quizzes: [], participants: [] });
+  const [resultQuizId, setResultQuizId] = useState("");
 
   const save = useServerFn(saveBlueprint);
   const getBP = useServerFn(getBlueprint);
   const runTick = useServerFn(runSchedulerNow);
   const schedNow = useServerFn(adminScheduleNow);
+  const loadResults = useServerFn(listAdminLiveQuizResults);
+
+  useEffect(() => {
+    let activeRequest = true;
+    setResultLoading(true);
+    loadResults({ data: { class_level: level } })
+      .then((result) => {
+        if (!activeRequest) return;
+        setResultData(result);
+        setResultQuizId(result.quizzes[0]?.id ?? "");
+      })
+      .catch((error) => toast.error(error?.message ?? "Could not load live quiz results"))
+      .finally(() => activeRequest && setResultLoading(false));
+    return () => { activeRequest = false; };
+  }, [level]);
 
   // Load subjects for selected level
   useEffect(() => {
@@ -153,6 +179,10 @@ function LiveQuizConfig() {
   };
 
   const availableTopics = topicsAvail.filter((t) => !selected.find((s) => s.topic_id === t.id));
+  const selectedResultQuiz = resultData.quizzes.find((quiz: any) => quiz.id === resultQuizId);
+  const selectedParticipants = resultData.participants.filter((row: any) => row.live_quiz_id === resultQuizId);
+  const attemptedParticipants = selectedParticipants.filter((row: any) => row.answered_count > 0);
+  const joinedOnlyCount = selectedParticipants.length - attemptedParticipants.length;
 
   return (
     <div className="min-h-screen">
@@ -344,6 +374,61 @@ function LiveQuizConfig() {
             )}
           </section>
         </div>
+
+        <section className="mt-6 glass rounded-3xl p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div className="text-xs uppercase tracking-wider text-warning font-semibold">Class {level}</div>
+              <h2 className="mt-1 text-xl font-semibold flex items-center gap-2"><Trophy className="h-5 w-5 text-warning" /> Live quiz leaderboard</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Only students who answered at least one question are ranked.</p>
+            </div>
+            <select
+              value={resultQuizId}
+              onChange={(event) => setResultQuizId(event.target.value)}
+              className="glass min-w-[240px] rounded-xl bg-card px-3 py-2 text-sm outline-none"
+              aria-label="Choose live quiz result"
+            >
+              {resultData.quizzes.map((quiz: any) => {
+                const subject = Array.isArray(quiz.subjects) ? quiz.subjects[0]?.name : quiz.subjects?.name;
+                return <option key={quiz.id} value={quiz.id}>{subject ?? "Live Quiz"} · {new Date(quiz.scheduled_at).toLocaleDateString()}</option>;
+              })}
+            </select>
+          </div>
+
+          {resultLoading ? (
+            <div className="flex items-center gap-2 py-10 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading leaderboard…</div>
+          ) : !selectedResultQuiz ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">No live quizzes are available for Class {level} yet.</div>
+          ) : attemptedParticipants.length === 0 ? (
+            <div className="mt-5 rounded-2xl border border-border bg-muted/40 px-4 py-8 text-center">
+              <Users className="mx-auto h-6 w-6 text-muted-foreground" />
+              <p className="mt-2 font-semibold">No one has attempted this quiz.</p>
+              {joinedOnlyCount > 0 && <p className="mt-1 text-xs text-muted-foreground">{joinedOnlyCount} student{joinedOnlyCount === 1 ? " joined" : "s joined"}, but no answers were submitted.</p>}
+            </div>
+          ) : (
+            <div className="mt-5 overflow-x-auto">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead className="text-xs uppercase text-muted-foreground">
+                  <tr className="border-b border-border"><th className="px-3 py-3">Rank</th><th className="px-3 py-3">Student</th><th className="px-3 py-3">Answered</th><th className="px-3 py-3">Correct</th><th className="px-3 py-3">Score</th><th className="px-3 py-3">Time</th><th className="px-3 py-3">History</th></tr>
+                </thead>
+                <tbody>
+                  {attemptedParticipants.map((row: any, index: number) => (
+                    <tr key={row.user_id} className="border-b border-border/60 last:border-0">
+                      <td className="px-3 py-3 font-semibold text-warning">#{row.rank ?? index + 1}</td>
+                      <td className="px-3 py-3 font-medium">{row.profile?.full_name || "Student"}</td>
+                      <td className="px-3 py-3">{row.answered_count}/{selectedResultQuiz.questions_total}</td>
+                      <td className="px-3 py-3 text-success">{row.correct_count}</td>
+                      <td className="px-3 py-3 font-semibold">{row.score}</td>
+                      <td className="px-3 py-3 text-muted-foreground">{Math.round(row.total_time_ms / 1000)}s</td>
+                      <td className="px-3 py-3"><Link to="/admin/student/$id" params={{ id: row.user_id }} className="inline-flex items-center gap-1 text-primary hover:underline"><History className="h-3.5 w-3.5" /> View attempts</Link></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {joinedOnlyCount > 0 && <p className="mt-3 text-xs text-muted-foreground">{joinedOnlyCount} joined without submitting an answer and {joinedOnlyCount === 1 ? "is" : "are"} not ranked.</p>}
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );
