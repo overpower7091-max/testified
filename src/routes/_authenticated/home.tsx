@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
 import { SubjectCard } from "@/components/subject-card";
+import { LiveQuizReminder } from "@/components/live-quiz-reminder";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/home")({
