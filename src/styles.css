@@ -46,6 +46,19 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  --color-subject-math: var(--subject-math);
+  --color-subject-math-2: var(--subject-math-2);
+  --color-subject-math-glow: var(--subject-math-glow);
+  --color-subject-science: var(--subject-science);
+  --color-subject-science-2: var(--subject-science-2);
+  --color-subject-science-glow: var(--subject-science-glow);
+  --color-subject-life: var(--subject-life);
+  --color-subject-life-2: var(--subject-life-2);
+  --color-subject-life-glow: var(--subject-life-glow);
+  --color-subject-chem: var(--subject-chem);
+  --color-subject-chem-2: var(--subject-chem-2);
+  --color-subject-chem-glow: var(--subject-chem-glow);
+  --color-subject-fg: var(--subject-fg);
 }
 
 :root,
@@ -77,6 +90,19 @@
   --success: oklch(0.75 0.18 150);
   --warning: oklch(0.82 0.17 80);
   --danger: oklch(0.68 0.22 25);
+  --subject-math: oklch(0.52 0.24 250);
+  --subject-math-2: oklch(0.7 0.18 255);
+  --subject-math-glow: oklch(0.78 0.18 255);
+  --subject-science: oklch(0.55 0.22 45);
+  --subject-science-2: oklch(0.75 0.16 55);
+  --subject-science-glow: oklch(0.82 0.16 60);
+  --subject-life: oklch(0.52 0.22 150);
+  --subject-life-2: oklch(0.72 0.16 155);
+  --subject-life-glow: oklch(0.8 0.16 155);
+  --subject-chem: oklch(0.55 0.22 300);
+  --subject-chem-2: oklch(0.75 0.16 305);
+  --subject-chem-glow: oklch(0.82 0.16 310);
+  --subject-fg: oklch(1 0 0);
 }
 
 @layer base {
