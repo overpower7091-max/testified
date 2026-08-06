@@ -187,7 +187,7 @@ function Home() {
                   </div>
                   <div>
                     <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Class {profile.class} · {latestLiveQuiz.subject}</div>
-                    <div className="text-sm font-semibold">No one has attempted this quiz.</div>
+                    <div className="text-sm font-semibold">No participants yet</div>
                   </div>
                 </div>
               )}

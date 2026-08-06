@@ -402,7 +402,7 @@ function LiveQuizConfig() {
           ) : attemptedParticipants.length === 0 ? (
             <div className="mt-5 rounded-2xl border border-border bg-muted/40 px-4 py-8 text-center">
               <Users className="mx-auto h-6 w-6 text-muted-foreground" />
-              <p className="mt-2 font-semibold">No one has attempted this quiz.</p>
+              <p className="mt-2 font-semibold">No participants yet</p>
               {joinedOnlyCount > 0 && <p className="mt-1 text-xs text-muted-foreground">{joinedOnlyCount} student{joinedOnlyCount === 1 ? " joined" : "s joined"}, but no answers were submitted.</p>}
             </div>
           ) : (
