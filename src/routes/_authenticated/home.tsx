@@ -220,6 +220,12 @@ function Home() {
           </div>
         </section>
 
+        <section className="mt-4">
+          <LiveQuizReminder />
+        </section>
+
+
+
         {/* Subjects + Quick actions */}
         <section className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="glass rounded-3xl p-6 lg:col-span-2">
