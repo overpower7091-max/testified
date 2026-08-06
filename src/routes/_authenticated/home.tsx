@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import {
   Flame, Trophy, Target, Sparkles, BookOpen, Crown,
   History, Radio, ClipboardList, Brain, Loader2,
-  ArrowRight, Calculator, Atom, FlaskConical, Leaf, TrendingUp, Clock, CheckCircle2, XCircle,
+  ArrowRight, TrendingUp, Clock,
 } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
+import { SubjectCard } from "@/components/subject-card";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/home")({
