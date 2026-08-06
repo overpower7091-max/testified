@@ -10,13 +10,6 @@ export const Route = createFileRoute("/_authenticated/subjects")({
   component: Subjects,
 });
 
-const ICONS: Record<string, any> = {
-  Mathematics: Calculator,
-  "Physical Science": Atom,
-  Physics: Atom,
-  "Life Science": Leaf,
-  Chemistry: FlaskConical,
-};
 
 function Subjects() {
   const [subjects, setSubjects] = useState<any[]>([]);

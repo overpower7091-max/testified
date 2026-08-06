@@ -23,17 +23,6 @@ export const Route = createFileRoute("/_authenticated/home")({
   component: Home,
 });
 
-const SUBJECT_ICONS: Record<string, any> = {
-  Mathematics: Calculator, "Physical Science": Atom, Physics: Atom,
-  "Life Science": Leaf, Chemistry: FlaskConical,
-};
-const SUBJECT_TINTS: Record<string, string> = {
-  Mathematics: "from-blue-500/20 to-blue-400/10",
-  "Physical Science": "from-sky-500/20 to-cyan-400/10",
-  Physics: "from-sky-500/20 to-cyan-400/10",
-  "Life Science": "from-emerald-500/20 to-teal-400/10",
-  Chemistry: "from-indigo-500/20 to-blue-400/10",
-};
 
 function Home() {
   const navigate = useNavigate();
@@ -241,24 +230,17 @@ function Home() {
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
               {subjects.length === 0 ? (
                 <div className="col-span-full text-sm text-muted-foreground">No subjects yet.</div>
-              ) : subjects.map((s) => {
-                const Icon = SUBJECT_ICONS[s.name] ?? BookOpen;
-                const tint = SUBJECT_TINTS[s.name] ?? "from-blue-500/10 to-blue-400/5";
-                return (
-                  <Link key={s.id} to="/subject/$id" params={{ id: s.id }}
-                    className={`group text-left rounded-2xl p-4 bg-gradient-to-br ${tint} border border-white/60 hover:scale-[1.02] transition-transform`}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/80 text-primary shadow-sm"><Icon className="h-5 w-5" /></div>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                    <div className="mt-4 text-sm font-semibold">{s.name}</div>
-                    <div className="text-xs text-muted-foreground">{s.chapters} chapters · {s.attempts} attempts</div>
-                    <div className="mt-3 h-1.5 w-full rounded-full bg-white/60 overflow-hidden">
-                      <div className="h-full btn-gradient rounded-full" style={{ width: `${s.accuracy || 6}%` }} />
-                    </div>
-                  </Link>
-                );
-              })}
+              ) : subjects.map((s) => (
+                <SubjectCard
+                  key={s.id}
+                  id={s.id}
+                  name={s.name}
+                  chapters={s.chapters}
+                  attempts={s.attempts}
+                  accuracy={s.accuracy}
+                  className="min-h-[180px]"
+                />
+              ))}
             </div>
           </div>
 
