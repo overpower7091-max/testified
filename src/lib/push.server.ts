@@ -26,7 +26,7 @@ async function sendOne(sub: { id: string; endpoint: string; p256dh: string; auth
     options: { ttl: 600, urgency: "high", topic: body.tag?.slice(0, 32) },
   };
   const payload = await buildPushPayload(message, subscription, keys);
-  const res = await fetch(sub.endpoint, payload);
+  const res = await fetch(sub.endpoint, payload as unknown as RequestInit);
   if (res.status === 404 || res.status === 410) {
     // Subscription is dead — clean it up.
     await supabaseAdmin.from("push_subscriptions").delete().eq("id", sub.id);
