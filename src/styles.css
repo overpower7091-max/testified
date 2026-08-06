@@ -46,6 +46,19 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  --color-subject-math: var(--subject-math);
+  --color-subject-math-2: var(--subject-math-2);
+  --color-subject-math-glow: var(--subject-math-glow);
+  --color-subject-science: var(--subject-science);
+  --color-subject-science-2: var(--subject-science-2);
+  --color-subject-science-glow: var(--subject-science-glow);
+  --color-subject-life: var(--subject-life);
+  --color-subject-life-2: var(--subject-life-2);
+  --color-subject-life-glow: var(--subject-life-glow);
+  --color-subject-chem: var(--subject-chem);
+  --color-subject-chem-2: var(--subject-chem-2);
+  --color-subject-chem-glow: var(--subject-chem-glow);
+  --color-subject-fg: var(--subject-fg);
 }
 
 :root,
