@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, BookOpen } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
 import { SubjectCard } from "@/components/subject-card";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,13 +32,14 @@ function Subjects() {
       if (!cls) { setLoading(false); return; }
       const { data: subs } = await supabase
         .from("subjects").select("id, name").eq("class_id", cls.id).order("position");
-      // For each subject compute chapters count + attempts count
       const enriched = await Promise.all((subs ?? []).map(async (s: any) => {
-        const [{ count: chapCount }, { count: attempts }] = await Promise.all([
+        const [{ count: chapCount }, { data: att }] = await Promise.all([
           supabase.from("chapters").select("*", { count: "exact", head: true }).eq("subject_id", s.id),
-          supabase.from("quiz_attempts").select("*", { count: "exact", head: true }).eq("user_id", userRes.user!.id).eq("subject_id", s.id),
+          supabase.from("quiz_attempts").select("is_correct").eq("user_id", userRes.user!.id).eq("subject_id", s.id),
         ]);
-        return { ...s, chapters: chapCount ?? 0, attempts: attempts ?? 0 };
+        const total = att?.length ?? 0;
+        const correct = att?.filter((a: any) => a.is_correct).length ?? 0;
+        return { ...s, chapters: chapCount ?? 0, attempts: total, accuracy: total ? Math.round((correct / total) * 100) : 0 };
       }));
       setSubjects(enriched);
       setLoading(false);
@@ -62,28 +63,17 @@ function Subjects() {
             <div className="col-span-full glass rounded-3xl p-10 text-center text-sm text-muted-foreground">
               No subjects available for your class yet.
             </div>
-          ) : subjects.map((s) => {
-            const Icon = ICONS[s.name] ?? BookOpen;
-            return (
-              <Link
-                key={s.id}
-                to="/subject/$id"
-                params={{ id: s.id }}
-                className="group glass rounded-2xl p-5 hover:scale-[1.02] transition-transform"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl glass-tint text-primary">
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                </div>
-                <div className="mt-4">
-                  <div className="text-base font-semibold">{s.name}</div>
-                  <div className="text-xs text-muted-foreground">{s.chapters} chapters · {s.attempts} attempts</div>
-                </div>
-              </Link>
-            );
-          })}
+          ) : subjects.map((s) => (
+            <SubjectCard
+              key={s.id}
+              id={s.id}
+              name={s.name}
+              chapters={s.chapters}
+              attempts={s.attempts}
+              accuracy={s.accuracy}
+              className="min-h-[190px]"
+            />
+          ))}
         </div>
       </main>
     </div>
