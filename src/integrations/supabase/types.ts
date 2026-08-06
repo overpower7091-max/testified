@@ -457,6 +457,7 @@ export type Database = {
           id: string
           question_seconds: number
           questions_total: number
+          reminder_sent_at: string | null
           scheduled_at: string
           started_at: string | null
           status: Database["public"]["Enums"]["live_quiz_status"]
@@ -473,6 +474,7 @@ export type Database = {
           id?: string
           question_seconds?: number
           questions_total?: number
+          reminder_sent_at?: string | null
           scheduled_at: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["live_quiz_status"]
@@ -489,6 +491,7 @@ export type Database = {
           id?: string
           question_seconds?: number
           questions_total?: number
+          reminder_sent_at?: string | null
           scheduled_at?: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["live_quiz_status"]
@@ -554,6 +557,42 @@ export type Database = {
           streak?: number
           updated_at?: string
           xp?: number
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          class_level: Database["public"]["Enums"]["class_level"] | null
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          class_level?: Database["public"]["Enums"]["class_level"] | null
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          class_level?: Database["public"]["Enums"]["class_level"] | null
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
         }
         Relationships: []
       }
