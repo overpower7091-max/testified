@@ -470,6 +470,39 @@ async function awardParticipant(quiz: any, p: { user_id: string; rank: number; c
 
 
 
+/** Push a "starts in 5 minutes" notification once per quiz, class-scoped. */
+async function sendReminderIfDue(quiz: any) {
+  if (quiz.reminder_sent_at) return;
+  if (quiz.status !== "scheduled") return;
+  const startsInMs = new Date(quiz.scheduled_at).getTime() - Date.now();
+  if (startsInMs > 5.5 * 60_000 || startsInMs < 0) return;
+
+  // Claim the reminder first so concurrent ticks can't double-send.
+  const { data: claimed } = await supabaseAdmin
+    .from("live_quizzes")
+    .update({ reminder_sent_at: new Date().toISOString() })
+    .eq("id", quiz.id)
+    .is("reminder_sent_at", null)
+    .select("id")
+    .maybeSingle();
+  if (!claimed) return;
+
+  const { data: subject } = await supabaseAdmin
+    .from("subjects")
+    .select("name")
+    .eq("id", quiz.subject_id)
+    .maybeSingle();
+
+  const { sendPushToClass } = await import("@/lib/push.server");
+  const mins = Math.max(1, Math.round(startsInMs / 60_000));
+  await sendPushToClass(String(quiz.class_level), {
+    title: `Live quiz in ${mins} minute${mins === 1 ? "" : "s"}!`,
+    body: `${subject?.name ?? "Live mock"} · Class ${quiz.class_level} · ${quiz.questions_total} questions. Tap to join.`,
+    url: "/live",
+    tag: `lq-${quiz.id}`,
+  });
+}
+
 export async function runLiveQuizTick() {
   await ensureScheduledForToday();
   // Only touch quizzes in the active window: about to start, or currently
@@ -488,7 +521,10 @@ export async function runLiveQuizTick() {
       try {
         await generateQuizIfNeeded(q);
         const { data: fresh } = await supabaseAdmin.from("live_quizzes").select("*").eq("id", q.id).single();
-        if (fresh) await tickQuiz(fresh);
+        if (fresh) {
+          await sendReminderIfDue(fresh);
+          await tickQuiz(fresh);
+        }
       } catch (e) {
         console.error("live-quiz-tick error", q.id, e);
       }
@@ -497,3 +533,4 @@ export async function runLiveQuizTick() {
 
   return { ok: true, processed: (quizzes ?? []).length };
 }
+

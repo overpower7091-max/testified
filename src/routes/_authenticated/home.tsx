@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
 import { SubjectCard } from "@/components/subject-card";
+import { LiveQuizReminder } from "@/components/live-quiz-reminder";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -219,6 +220,12 @@ function Home() {
             </div>
           </div>
         </section>
+
+        <section className="mt-4">
+          <LiveQuizReminder />
+        </section>
+
+
 
         {/* Subjects + Quick actions */}
         <section className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
