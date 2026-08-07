@@ -240,3 +240,102 @@
   .topper-banner, .topper-name { animation: none; }
   .ai-icon *, .ai-icon { animation: none !important; }
 }
+
+/* ---------- Animated 3D gradient backdrop ---------- */
+.aurora-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  perspective: 900px;
+  background:
+    radial-gradient(120% 90% at 50% -10%, color-mix(in oklab, var(--brand-2) 16%, transparent), transparent 60%),
+    var(--color-background);
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.55;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.aurora-blob-1 {
+  width: 46vmax; height: 46vmax;
+  top: -12vmax; left: -8vmax;
+  background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--primary) 85%, white 15%), color-mix(in oklab, var(--primary) 35%, transparent) 62%, transparent 72%);
+  animation: aurora-drift-1 26s ease-in-out infinite;
+}
+
+.aurora-blob-2 {
+  width: 40vmax; height: 40vmax;
+  bottom: -14vmax; right: -10vmax;
+  background: radial-gradient(circle at 60% 40%, color-mix(in oklab, var(--brand-2) 88%, white 12%), color-mix(in oklab, var(--brand-2) 30%, transparent) 60%, transparent 72%);
+  animation: aurora-drift-2 32s ease-in-out infinite;
+}
+
+.aurora-blob-3 {
+  width: 34vmax; height: 34vmax;
+  top: 32%; right: 14%;
+  background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--brand-3, var(--primary)) 80%, white 10%), transparent 68%);
+  opacity: 0.4;
+  animation: aurora-drift-3 38s ease-in-out infinite;
+}
+
+.aurora-blob-4 {
+  width: 28vmax; height: 28vmax;
+  bottom: 8%; left: 18%;
+  background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--success, var(--primary)) 65%, transparent), transparent 70%);
+  opacity: 0.3;
+  animation: aurora-drift-4 30s ease-in-out infinite;
+}
+
+.aurora-grid {
+  position: absolute;
+  inset: -20% -20% -35% -20%;
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-foreground) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-foreground) 7%, transparent) 1px, transparent 1px);
+  background-size: 62px 62px;
+  transform: rotateX(62deg) translateZ(-120px);
+  transform-origin: 50% 100%;
+  mask-image: linear-gradient(to top, black, transparent 68%);
+  opacity: 0.5;
+  animation: aurora-grid-scroll 18s linear infinite;
+}
+
+.aurora-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(110% 80% at 50% 40%, transparent 45%, color-mix(in oklab, var(--color-background) 88%, transparent) 100%);
+}
+
+@keyframes aurora-drift-1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(8vmax, 6vmax, 60px) scale(1.14); }
+  66% { transform: translate3d(3vmax, 12vmax, -40px) scale(0.94); }
+}
+@keyframes aurora-drift-2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
+  40% { transform: translate3d(-10vmax, -7vmax, 80px) scale(1.2); }
+  70% { transform: translate3d(-4vmax, -13vmax, -30px) scale(0.92); }
+}
+@keyframes aurora-drift-3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(0.95) rotate(0deg); }
+  50% { transform: translate3d(-9vmax, 9vmax, 50px) scale(1.18) rotate(25deg); }
+}
+@keyframes aurora-drift-4 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(7vmax, -8vmax, 40px) scale(1.22); }
+}
+@keyframes aurora-grid-scroll {
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 0 62px, 0 62px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-blob, .aurora-grid { animation: none !important; }
+}
