@@ -1,10 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  Flame, Trophy, Target, Sparkles, BookOpen, Crown,
-  History, Radio, ClipboardList, Brain, Loader2,
-  ArrowRight, TrendingUp, Clock,
+  BookOpen, Loader2,
+  ArrowRight, TrendingUp, Clock, Radio,
 } from "lucide-react";
+import {
+  RankIcon, XpIcon, StreakIcon, AccuracyIcon, CrownIcon,
+  DailyQuizIcon, LiveIcon, AiSolverIcon, LeaderboardIcon, HistoryIcon,
+} from "@/components/animated-icons";
 import { AppHeader } from "@/components/app-header";
 import { SubjectCard } from "@/components/subject-card";
 import { LiveQuizReminder } from "@/components/live-quiz-reminder";
