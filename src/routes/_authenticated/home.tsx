@@ -350,10 +350,33 @@ function formatDuration(sec: number) {
   return `${m}m ${s}s`;
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+type Tone = "primary" | "brand2" | "warning" | "danger" | "success";
+const TONE: Record<Tone, string> = {
+  primary: "var(--primary)",
+  brand2: "var(--brand-2)",
+  warning: "var(--warning)",
+  danger: "var(--danger)",
+  success: "var(--success)",
+};
+function ToneChip({ tone = "primary", size, children }: { tone?: Tone; size: string; children: React.ReactNode }) {
+  const c = TONE[tone];
+  return (
+    <div
+      className={`flex ${size} shrink-0 items-center justify-center rounded-xl`}
+      style={{
+        color: c,
+        background: `color-mix(in oklab, ${c} 18%, transparent)`,
+        boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${c} 38%, transparent), 0 6px 18px -10px color-mix(in oklab, ${c} 70%, transparent)`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+function Stat({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: string; tone?: Tone }) {
   return (
     <div className="glass rounded-2xl px-3 py-2.5 flex items-center gap-2.5">
-      <div className="flex h-8 w-8 items-center justify-center rounded-xl glass-tint text-primary">{icon}</div>
+      <ToneChip tone={tone} size="h-8 w-8">{icon}</ToneChip>
       <div className="min-w-0">
         <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{label}</div>
         <div className="text-sm font-semibold truncate">{value}</div>
