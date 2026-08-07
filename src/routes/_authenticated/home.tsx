@@ -1,10 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  Flame, Trophy, Target, Sparkles, BookOpen, Crown,
-  History, Radio, ClipboardList, Brain, Loader2,
-  ArrowRight, TrendingUp, Clock,
+  BookOpen, Loader2,
+  ArrowRight, TrendingUp, Clock, Radio,
 } from "lucide-react";
+import {
+  RankIcon, XpIcon, StreakIcon, AccuracyIcon, CrownIcon,
+  DailyQuizIcon, LiveIcon, AiSolverIcon, LeaderboardIcon, HistoryIcon,
+} from "@/components/animated-icons";
 import { AppHeader } from "@/components/app-header";
 import { SubjectCard } from "@/components/subject-card";
 import { LiveQuizReminder } from "@/components/live-quiz-reminder";
@@ -162,7 +165,7 @@ function Home() {
               {liveTopper && (
                 <Link to="/leaderboard" className="topper-banner mt-5 flex max-w-xl items-center gap-3 overflow-hidden rounded-2xl border border-warning/35 bg-warning/10 px-4 py-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-warning/20 text-warning">
-                    <Crown className="h-5 w-5" />
+                    <CrownIcon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-[10px] font-semibold uppercase tracking-wider text-warning">Class {profile.class} · Daily live topper</div>
@@ -174,7 +177,7 @@ function Home() {
               {latestLiveQuiz && !latestLiveQuiz.hasAttempts && (
                 <div className="topper-banner mt-5 flex max-w-xl items-center gap-3 rounded-2xl border border-border bg-muted/60 px-4 py-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                    <Crown className="h-5 w-5" />
+                    <CrownIcon className="h-5 w-5" />
                   </div>
                   <div>
                     <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Class {profile.class} · {latestLiveQuiz.subject}</div>
@@ -184,10 +187,10 @@ function Home() {
               )}
 
               <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <Stat icon={<Trophy className="h-4 w-4" />} label="Rank" value={rank ? `#${rank}` : "—"} />
-                <Stat icon={<Sparkles className="h-4 w-4" />} label="XP" value={String(profile.xp)} />
-                <Stat icon={<Flame className="h-4 w-4" />} label="Streak" value={`${profile.streak}d`} />
-                <Stat icon={<Target className="h-4 w-4" />} label="Accuracy" value={attempts.length ? `${accuracy}%` : "—"} />
+                <Stat tone="warning" icon={<RankIcon className="h-[18px] w-[18px]" />} label="Rank" value={rank ? `#${rank}` : "—"} />
+                <Stat tone="brand2" icon={<XpIcon className="h-[18px] w-[18px]" />} label="XP" value={String(profile.xp)} />
+                <Stat tone="danger" icon={<StreakIcon className="h-[18px] w-[18px]" />} label="Streak" value={`${profile.streak}d`} />
+                <Stat tone="success" icon={<AccuracyIcon className="h-[18px] w-[18px]" />} label="Accuracy" value={attempts.length ? `${accuracy}%` : "—"} />
               </div>
             </div>
           </div>
@@ -254,11 +257,11 @@ function Home() {
           <div className="glass rounded-3xl p-6">
             <h2 className="text-lg font-semibold">Quick actions</h2>
             <div className="mt-4 space-y-2.5">
-              <QuickAction to="/subjects" icon={<ClipboardList className="h-4 w-4" />} title="Daily Quiz" desc="Today's challenge" />
-              <QuickAction to="/live" icon={<Radio className="h-4 w-4" />} title="Live Quiz" desc="Scheduled mocks" />
-              <QuickAction to="/mock" icon={<Brain className="h-4 w-4" />} title="AI Doubt Solver" desc="Coming soon" />
-              <QuickAction to="/leaderboard" icon={<Trophy className="h-4 w-4" />} title="Leaderboard" desc="Compete in your class" />
-              <QuickAction to="/history" icon={<History className="h-4 w-4" />} title="Quiz History" desc="Review attempts" />
+              <QuickAction to="/subjects" tone="primary" icon={<DailyQuizIcon className="h-[19px] w-[19px]" />} title="Daily Quiz" desc="Today's challenge" />
+              <QuickAction to="/live" tone="danger" icon={<LiveIcon className="h-[19px] w-[19px]" />} title="Live Quiz" desc="Scheduled mocks" />
+              <QuickAction to="/mock" tone="brand2" icon={<AiSolverIcon className="h-[19px] w-[19px]" />} title="AI Doubt Solver" desc="Coming soon" />
+              <QuickAction to="/leaderboard" tone="warning" icon={<LeaderboardIcon className="h-[19px] w-[19px]" />} title="Leaderboard" desc="Compete in your class" />
+              <QuickAction to="/history" tone="success" icon={<HistoryIcon className="h-[19px] w-[19px]" />} title="Quiz History" desc="Review attempts" />
             </div>
           </div>
         </section>
@@ -290,7 +293,7 @@ function Home() {
                   const inner = (
                     <div className="glass rounded-2xl p-3 flex items-center gap-3 hover:scale-[1.005] transition-transform">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl glass-tint text-primary shrink-0">
-                        <History className="h-4 w-4" />
+                        <HistoryIcon className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold truncate">{s.topicName}</div>
@@ -298,7 +301,7 @@ function Home() {
                           {s.subjectName ? `${s.subjectName} · ` : ""}{started.toLocaleDateString()} · {started.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </div>
                         <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
-                          <span className={`inline-flex items-center gap-1 font-semibold ${accTint}`}><Target className="h-3 w-3" /> {s.correct}/{s.total} · {acc}%</span>
+                          <span className={`inline-flex items-center gap-1 font-semibold ${accTint}`}><AccuracyIcon className="h-3.5 w-3.5" /> {s.correct}/{s.total} · {acc}%</span>
                           <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {formatDuration(s.seconds)}</span>
                         </div>
                       </div>
@@ -347,10 +350,33 @@ function formatDuration(sec: number) {
   return `${m}m ${s}s`;
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+type Tone = "primary" | "brand2" | "warning" | "danger" | "success";
+const TONE: Record<Tone, string> = {
+  primary: "var(--primary)",
+  brand2: "var(--brand-2)",
+  warning: "var(--warning)",
+  danger: "var(--danger)",
+  success: "var(--success)",
+};
+function ToneChip({ tone = "primary", size, children }: { tone?: Tone; size: string; children: React.ReactNode }) {
+  const c = TONE[tone];
+  return (
+    <div
+      className={`flex ${size} shrink-0 items-center justify-center rounded-xl`}
+      style={{
+        color: c,
+        background: `color-mix(in oklab, ${c} 18%, transparent)`,
+        boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${c} 38%, transparent), 0 6px 18px -10px color-mix(in oklab, ${c} 70%, transparent)`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+function Stat({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: string; tone?: Tone }) {
   return (
     <div className="glass rounded-2xl px-3 py-2.5 flex items-center gap-2.5">
-      <div className="flex h-8 w-8 items-center justify-center rounded-xl glass-tint text-primary">{icon}</div>
+      <ToneChip tone={tone} size="h-8 w-8">{icon}</ToneChip>
       <div className="min-w-0">
         <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{label}</div>
         <div className="text-sm font-semibold truncate">{value}</div>
@@ -387,10 +413,10 @@ function ProgressRing({ value }: { value: number }) {
     </div>
   );
 }
-function QuickAction({ to, icon, title, desc }: { to: string; icon: React.ReactNode; title: string; desc: string }) {
+function QuickAction({ to, icon, title, desc, tone }: { to: string; icon: React.ReactNode; title: string; desc: string; tone?: Tone }) {
   return (
     <Link to={to} className="w-full glass rounded-2xl px-3 py-2.5 flex items-center gap-3 hover:scale-[1.01] transition-transform text-left">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl glass-tint text-primary">{icon}</div>
+      <ToneChip tone={tone} size="h-9 w-9">{icon}</ToneChip>
       <div className="min-w-0 flex-1">
         <div className="text-sm font-medium truncate">{title}</div>
         <div className="text-xs text-muted-foreground truncate">{desc}</div>
