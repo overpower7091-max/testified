@@ -240,154 +240,162 @@
   .ai-icon *, .ai-icon { animation: none !important; }
 }
 
-/* ---------- Animated 3D gradient backdrop (Google-style colour cycling) ---------- */
+/* ---------- Animated curtain backdrop (waving drapes with colour shift) ---------- */
 .aurora-bg {
   position: fixed;
   inset: 0;
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  perspective: 900px;
   background: var(--color-background);
 }
 
-/* Slow, smooth sweep through a curated palette behind everything */
+:root, .dark {
+  --aurora-c1: oklch(0.7 0.2 255);
+  --aurora-c2: oklch(0.7 0.19 300);
+  --aurora-c3: oklch(0.76 0.17 190);
+  --aurora-c4: oklch(0.78 0.17 150);
+  --aurora-c5: oklch(0.82 0.17 85);
+}
+
+/* Base wash so the curtains never sit on flat black */
 .aurora-bg::before {
   content: "";
   position: absolute;
-  inset: -25%;
+  inset: -20%;
   background:
-    radial-gradient(50% 45% at 20% 15%, color-mix(in oklab, var(--aurora-c1) 55%, transparent), transparent 70%),
-    radial-gradient(45% 40% at 80% 25%, color-mix(in oklab, var(--aurora-c2) 50%, transparent), transparent 70%),
-    radial-gradient(55% 50% at 50% 90%, color-mix(in oklab, var(--aurora-c3) 45%, transparent), transparent 72%);
-  filter: blur(30px);
-  opacity: 0.5;
-  animation: aurora-hue 34s linear infinite, aurora-breathe 16s ease-in-out infinite;
+    radial-gradient(70% 60% at 30% 0%, color-mix(in oklab, var(--aurora-c1) 32%, transparent), transparent 72%),
+    radial-gradient(60% 60% at 75% 10%, color-mix(in oklab, var(--aurora-c2) 26%, transparent), transparent 74%);
+  filter: blur(50px);
+  opacity: 0.55;
+  animation: aurora-wash 30s ease-in-out infinite;
 }
 
-.aurora-blob {
+/* Each curtain is a tall soft vertical band, skewed + waved via clip-path-free transforms */
+.aurora-curtain {
   position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.5;
-  transform-style: preserve-3d;
-  will-change: transform, opacity, background-color;
+  top: -30%;
+  height: 160%;
+  filter: blur(42px);
   mix-blend-mode: screen;
+  will-change: transform, opacity, color;
+  border-radius: 50% / 12%;
+  background:
+    linear-gradient(to bottom,
+      transparent 0%,
+      color-mix(in oklab, currentColor 78%, transparent) 22%,
+      color-mix(in oklab, currentColor 92%, transparent) 48%,
+      color-mix(in oklab, currentColor 40%, transparent) 78%,
+      transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 72%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 72%, transparent 100%);
 }
 
-.aurora-blob-1 {
-  width: 48vmax; height: 48vmax;
-  top: -14vmax; left: -10vmax;
-  background: radial-gradient(circle at 38% 38%, currentColor, color-mix(in oklab, currentColor 30%, transparent) 60%, transparent 74%);
-  animation: aurora-drift-1 26s ease-in-out infinite, aurora-cycle-1 24s ease-in-out infinite;
+.aurora-curtain-1 {
+  left: -6%;
+  width: 26vw;
+  opacity: 0.55;
+  animation: aurora-wave-1 18s ease-in-out infinite, aurora-cycle-1 24s ease-in-out infinite;
 }
-
-.aurora-blob-2 {
-  width: 42vmax; height: 42vmax;
-  bottom: -16vmax; right: -12vmax;
-  background: radial-gradient(circle at 58% 42%, currentColor, color-mix(in oklab, currentColor 28%, transparent) 58%, transparent 74%);
-  animation: aurora-drift-2 32s ease-in-out infinite, aurora-cycle-2 28s ease-in-out infinite;
+.aurora-curtain-2 {
+  left: 22%;
+  width: 20vw;
+  opacity: 0.5;
+  animation: aurora-wave-2 22s ease-in-out infinite, aurora-cycle-2 28s ease-in-out infinite;
 }
-
-.aurora-blob-3 {
-  width: 36vmax; height: 36vmax;
-  top: 30%; right: 12%;
-  background: radial-gradient(circle at 50% 50%, currentColor, transparent 68%);
-  opacity: 0.42;
-  animation: aurora-drift-3 38s ease-in-out infinite, aurora-cycle-3 30s ease-in-out infinite;
-}
-
-.aurora-blob-4 {
-  width: 30vmax; height: 30vmax;
-  bottom: 6%; left: 16%;
-  background: radial-gradient(circle at 50% 50%, currentColor, transparent 70%);
-  opacity: 0.34;
-  animation: aurora-drift-4 30s ease-in-out infinite, aurora-cycle-4 26s ease-in-out infinite;
-}
-
-.aurora-grid {
-  position: absolute;
-  inset: -20% -20% -35% -20%;
-  background-image:
-    linear-gradient(to right, color-mix(in oklab, var(--color-foreground) 7%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--color-foreground) 7%, transparent) 1px, transparent 1px);
-  background-size: 62px 62px;
-  transform: rotateX(62deg) translateZ(-120px);
-  transform-origin: 50% 100%;
-  mask-image: linear-gradient(to top, black, transparent 68%);
+.aurora-curtain-3 {
+  left: 50%;
+  width: 24vw;
   opacity: 0.45;
-  animation: aurora-grid-scroll 18s linear infinite;
+  animation: aurora-wave-3 26s ease-in-out infinite, aurora-cycle-3 32s ease-in-out infinite;
+}
+.aurora-curtain-4 {
+  right: -8%;
+  width: 28vw;
+  opacity: 0.5;
+  animation: aurora-wave-4 20s ease-in-out infinite, aurora-cycle-4 26s ease-in-out infinite;
+}
+
+/* Fine vertical folds sweeping sideways, sells the fabric feel */
+.aurora-shimmer {
+  position: absolute;
+  inset: -10%;
+  background: repeating-linear-gradient(
+    100deg,
+    transparent 0 40px,
+    color-mix(in oklab, var(--color-foreground) 5%, transparent) 40px 42px,
+    transparent 42px 92px
+  );
+  mask-image: linear-gradient(to bottom, transparent, black 35%, black 70%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 35%, black 70%, transparent);
+  opacity: 0.5;
+  animation: aurora-folds 24s linear infinite;
 }
 
 .aurora-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(110% 80% at 50% 40%, transparent 42%, color-mix(in oklab, var(--color-background) 90%, transparent) 100%);
+  background: radial-gradient(115% 85% at 50% 40%, transparent 40%, color-mix(in oklab, var(--color-background) 92%, transparent) 100%);
 }
 
-:root, .dark {
-  --aurora-c1: oklch(0.62 0.2 255);
-  --aurora-c2: oklch(0.66 0.19 300);
-  --aurora-c3: oklch(0.7 0.16 190);
+/* Waving: horizontal drift + skew + non-uniform scale = curtain ripple */
+@keyframes aurora-wave-1 {
+  0%, 100% { transform: translateX(0) skewX(-6deg) scaleX(1) scaleY(1); }
+  33% { transform: translateX(5vw) skewX(9deg) scaleX(1.25) scaleY(1.04); }
+  66% { transform: translateX(-3vw) skewX(-11deg) scaleX(0.85) scaleY(0.97); }
+}
+@keyframes aurora-wave-2 {
+  0%, 100% { transform: translateX(0) skewX(8deg) scaleX(1); }
+  40% { transform: translateX(-6vw) skewX(-10deg) scaleX(1.35); }
+  70% { transform: translateX(4vw) skewX(12deg) scaleX(0.8); }
+}
+@keyframes aurora-wave-3 {
+  0%, 100% { transform: translateX(0) skewX(-10deg) scaleX(1.1); }
+  35% { transform: translateX(7vw) skewX(7deg) scaleX(0.82); }
+  70% { transform: translateX(-5vw) skewX(-14deg) scaleX(1.3); }
+}
+@keyframes aurora-wave-4 {
+  0%, 100% { transform: translateX(0) skewX(6deg) scaleX(1); }
+  45% { transform: translateX(-7vw) skewX(-8deg) scaleX(1.28); }
+  75% { transform: translateX(3vw) skewX(11deg) scaleX(0.86); }
 }
 
-/* Colour cycling: each orb walks the palette at a different phase */
+@keyframes aurora-folds {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(92px); }
+}
+
+@keyframes aurora-wash {
+  0%, 100% { opacity: 0.45; filter: blur(50px) hue-rotate(0deg); }
+  50% { opacity: 0.62; filter: blur(50px) hue-rotate(60deg); }
+}
+
+/* Colour cycling: each curtain walks the palette at a different phase */
 @keyframes aurora-cycle-1 {
-  0%, 100% { color: oklch(0.7 0.2 255); }
-  25% { color: oklch(0.7 0.19 300); }
-  50% { color: oklch(0.74 0.17 190); }
-  75% { color: oklch(0.76 0.18 150); }
+  0%, 100% { color: var(--aurora-c1); }
+  25% { color: var(--aurora-c2); }
+  50% { color: var(--aurora-c3); }
+  75% { color: var(--aurora-c4); }
 }
 @keyframes aurora-cycle-2 {
-  0%, 100% { color: oklch(0.68 0.2 300); }
-  25% { color: oklch(0.76 0.17 150); }
-  50% { color: oklch(0.8 0.17 85); }
-  75% { color: oklch(0.7 0.2 255); }
+  0%, 100% { color: var(--aurora-c2); }
+  25% { color: var(--aurora-c4); }
+  50% { color: var(--aurora-c5); }
+  75% { color: var(--aurora-c1); }
 }
 @keyframes aurora-cycle-3 {
-  0%, 100% { color: oklch(0.74 0.17 190); }
-  33% { color: oklch(0.72 0.21 25); }
-  66% { color: oklch(0.7 0.19 300); }
+  0%, 100% { color: var(--aurora-c3); }
+  33% { color: var(--aurora-c1); }
+  66% { color: var(--aurora-c2); }
 }
 @keyframes aurora-cycle-4 {
-  0%, 100% { color: oklch(0.78 0.17 150); }
-  33% { color: oklch(0.8 0.17 85); }
-  66% { color: oklch(0.7 0.2 255); }
-}
-
-@keyframes aurora-hue {
-  0% { filter: blur(30px) hue-rotate(0deg); }
-  100% { filter: blur(30px) hue-rotate(360deg); }
-}
-@keyframes aurora-breathe {
-  0%, 100% { opacity: 0.42; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.06); }
-}
-
-@keyframes aurora-drift-1 {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  33% { transform: translate3d(8vmax, 6vmax, 60px) scale(1.14); }
-  66% { transform: translate3d(3vmax, 12vmax, -40px) scale(0.94); }
-}
-@keyframes aurora-drift-2 {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
-  40% { transform: translate3d(-10vmax, -7vmax, 80px) scale(1.2); }
-  70% { transform: translate3d(-4vmax, -13vmax, -30px) scale(0.92); }
-}
-@keyframes aurora-drift-3 {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(0.95) rotate(0deg); }
-  50% { transform: translate3d(-9vmax, 9vmax, 50px) scale(1.18) rotate(25deg); }
-}
-@keyframes aurora-drift-4 {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(7vmax, -8vmax, 40px) scale(1.22); }
-}
-@keyframes aurora-grid-scroll {
-  0% { background-position: 0 0, 0 0; }
-  100% { background-position: 0 62px, 0 62px; }
+  0%, 100% { color: var(--aurora-c4); }
+  33% { color: var(--aurora-c5); }
+  66% { color: var(--aurora-c1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora-blob, .aurora-grid, .aurora-bg::before { animation: none !important; }
+  .aurora-curtain, .aurora-shimmer, .aurora-bg::before { animation: none !important; }
 }
+
 
