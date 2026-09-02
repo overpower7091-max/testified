@@ -628,6 +628,76 @@ export type Database = {
           },
         ]
       }
+      question_reports: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          id: string
+          live_quiz_id: string | null
+          question_id: string
+          quiz_attempt_id: string | null
+          report_text: string
+          reporter_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          live_quiz_id?: string | null
+          question_id: string
+          quiz_attempt_id?: string | null
+          report_text: string
+          reporter_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          live_quiz_id?: string | null
+          question_id?: string
+          quiz_attempt_id?: string | null
+          report_text?: string
+          reporter_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_reports_live_quiz_id_fkey"
+            columns: ["live_quiz_id"]
+            isOneToOne: false
+            referencedRelation: "live_quizzes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_reports_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_reports_quiz_attempt_id_fkey"
+            columns: ["quiz_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       questions: {
         Row: {
           correct_answer: Json
