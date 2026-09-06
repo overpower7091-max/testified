@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Clock, CheckCircle2, XCircle, ArrowRight, Trophy, RotateCcw } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
 import { Latex } from "@/components/latex";
+import { ReportQuestionDialog } from "@/components/report-question-dialog";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/practice/topic/$topicId")({
@@ -29,6 +30,7 @@ function TopicPractice() {
   const [done, setDone] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string>(() => (globalThis.crypto?.randomUUID?.() ?? String(Date.now())));
+  const [attemptId, setAttemptId] = useState<string | null>(null);
 
   const loadQuestions = async () => {
     const { data: t } = await supabase.from("topics").select("name, chapter_id").eq("id", topicId).maybeSingle();
@@ -83,11 +85,12 @@ function TopicPractice() {
     const isCorrect = selected === q.correct_answer;
     setAnswers((a) => [...a, { correct: isCorrect }]);
     if (userId) {
-      await supabase.from("quiz_attempts").insert({
+      const { data: attempt } = await supabase.from("quiz_attempts").insert({
         user_id: userId, question_id: q.id, chapter_id: chapterId,
         subject_id: subjectId, topic_id: topicId, session_id: sessionId,
         selected_index: selected, is_correct: isCorrect, time_seconds: elapsed,
-      });
+      }).select("id").single();
+      setAttemptId(attempt?.id ?? null);
       if (isCorrect) {
         const { data: p } = await supabase.from("profiles").select("xp").eq("id", userId).maybeSingle();
         await supabase.from("profiles").update({ xp: (p?.xp ?? 0) + 10 }).eq("id", userId);
@@ -97,7 +100,7 @@ function TopicPractice() {
 
   const next = () => {
     if (idx + 1 >= questions.length) { setDone(true); return; }
-    setIdx(idx + 1); setSelected(null); setRevealed(false); setStartedAt(Date.now()); setElapsed(0);
+    setIdx(idx + 1); setSelected(null); setRevealed(false); setAttemptId(null); setStartedAt(Date.now()); setElapsed(0);
   };
 
   const restart = async () => {
@@ -219,6 +222,12 @@ function TopicPractice() {
             <div className="mt-5 glass-tint rounded-2xl p-4 text-sm">
               <div className="text-[10px] uppercase tracking-widest text-primary font-semibold">Explanation</div>
               <p className="mt-1 text-foreground/90"><Latex>{q.explanation}</Latex></p>
+            </div>
+          )}
+
+          {revealed && (
+            <div className="mt-4 flex justify-end">
+              <ReportQuestionDialog questionId={q.id} source="practice" quizAttemptId={attemptId} />
             </div>
           )}
 

@@ -4,6 +4,7 @@ import { Loader2, CheckCircle2, XCircle, ArrowLeft, Clock, Target, Trophy } from
 import { AppHeader } from "@/components/app-header";
 import { Latex } from "@/components/latex";
 import { supabase } from "@/integrations/supabase/client";
+import { ReportQuestionDialog } from "@/components/report-question-dialog";
 
 export const Route = createFileRoute("/_authenticated/history_/session/$sessionId")({
   head: () => ({ meta: [{ title: "Quiz review — Testified" }] }),
@@ -112,6 +113,11 @@ function SessionReview() {
                   <div className="mt-3 glass-tint rounded-2xl p-3 text-sm">
                     <div className="text-[10px] uppercase tracking-widest text-primary font-semibold">Explanation</div>
                     <p className="mt-1 text-foreground/90"><Latex>{q.explanation}</Latex></p>
+                  </div>
+                )}
+                {q?.id && (
+                  <div className="mt-4 flex justify-end">
+                    <ReportQuestionDialog questionId={q.id} source="history" quizAttemptId={r.id} />
                   </div>
                 )}
               </div>
