@@ -65,15 +65,6 @@ async function ensureScheduledForToday() {
   for (const level of CLASS_LEVELS) {
     const subject = subjects.find((s: any) => s.classes?.level === level);
     if (!subject) continue;
-    const { data: existing } = await supabaseAdmin
-      .from("live_quizzes")
-      .select("id, status")
-      .eq("class_level", level as any)
-      .eq("subject_id", subject.id)
-      .eq("scheduled_at", scheduledAt.toISOString())
-      .maybeSingle();
-    if (existing) continue;
-    // Look up active blueprint
     const { data: bp } = await supabaseAdmin
       .from("live_quiz_blueprints")
       .select("*")
@@ -81,6 +72,22 @@ async function ensureScheduledForToday() {
       .eq("subject_id", subject.id)
       .eq("is_active", true)
       .maybeSingle();
+    const { data: existing } = await supabaseAdmin
+      .from("live_quizzes")
+      .select("id, status")
+      .eq("class_level", level as any)
+      .eq("subject_id", subject.id)
+      .eq("scheduled_at", scheduledAt.toISOString())
+      .maybeSingle();
+    if (existing) {
+      if (existing.status === "configuration_required" && bp) {
+        await supabaseAdmin
+          .from("live_quizzes")
+          .update({ status: "scheduled", questions_total: bp.questions_total, question_seconds: bp.question_seconds })
+          .eq("id", existing.id);
+      }
+      continue;
+    }
     await supabaseAdmin.from("live_quizzes").insert({
       class_level: level as any,
       subject_id: subject.id,
