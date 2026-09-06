@@ -13,6 +13,7 @@ import {
   getResults,
 } from "@/lib/live-quiz.functions";
 import { Latex } from "@/components/latex";
+import { ReportQuestionDialog } from "@/components/report-question-dialog";
 import { Loader2, Radio, Clock, Trophy, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
@@ -102,7 +103,7 @@ type Session = {
   started_at: string | null;
   ended_at: string | null;
   server_now: string;
-  questions: { position: number; difficulty: string; text: string; options: string[]; images?: string[] }[];
+  questions: { id: string; position: number; difficulty: string; text: string; options: string[]; images?: string[] }[];
   my_answers: { position: number; selected_index: number | null; is_correct: boolean }[];
 };
 
@@ -382,6 +383,7 @@ function QuizRunner({
             locked={!!answered}
             submitting={submitting}
             onSelect={handleSubmit}
+              liveQuizId={quizId}
           />
         </div>
 
@@ -401,12 +403,14 @@ const QuestionCard = memo(function QuestionCard({
   locked,
   submitting,
   onSelect,
+  liveQuizId,
 }: {
-  question: { text: string; options: string[]; difficulty: string } | null;
+  question: { id: string; text: string; options: string[]; difficulty: string } | null;
   selected: number | null;
   locked: boolean;
   submitting: boolean;
   onSelect: (idx: number) => void;
+  liveQuizId: string;
 }) {
   if (!question) {
     return <div className="mt-6 text-sm text-muted-foreground text-center py-8">Waiting for question…</div>;
@@ -439,6 +443,9 @@ const QuestionCard = memo(function QuestionCard({
           Answer locked · waiting for next question…
         </div>
       )}
+      <div className="mt-4 flex justify-end">
+        <ReportQuestionDialog questionId={question.id} source="live" liveQuizId={liveQuizId} />
+      </div>
     </div>
   );
 });
