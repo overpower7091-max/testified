@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Mail, ArrowRight, GraduationCap, Loader2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 
 const VIDEO_URL =
@@ -35,16 +34,16 @@ function AuthPage() {
 
   const handleGoogle = async () => {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/auth",
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin + "/auth" },
     });
-    if (result.error) {
-      toast.error(result.error.message ?? "Google sign-in failed");
+    if (error) {
+      toast.error(error.message ?? "Google sign-in failed");
       setBusy(false);
       return;
     }
-    if (result.redirected) return;
-    navigate({ to: "/home" });
+    // On success, Supabase redirects the browser to Google, so nothing else runs here.
   };
 
   const handleEmail = async (e: React.FormEvent) => {
