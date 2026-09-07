@@ -21,36 +21,75 @@ function Onboarding() {
 
   useEffect(() => {
     (async () => {
-      const { data: userRes } = await supabase.auth.getUser();
-      if (!userRes.user) return;
-      const { data: p } = await supabase
-        .from("profiles")
-        .select("full_name, class, onboarding_completed")
-        .eq("id", userRes.user.id)
-        .maybeSingle();
-      if (p?.onboarding_completed) {
-        navigate({ to: "/home", replace: true });
-        return;
+      try {
+        const { data: userRes, error: userErr } = await supabase.auth.getUser();
+        if (userErr || !userRes.user) {
+          toast.error("Your session expired. Please log in again.");
+          navigate({ to: "/auth", replace: true });
+          return;
+        }
+        const { data: p, error: profErr } = await supabase
+          .from("profiles")
+          .select("full_name, class, onboarding_completed")
+          .eq("id", userRes.user.id)
+          .maybeSingle();
+        if (profErr) {
+          toast.error(profErr.message);
+          setChecked(true);
+          return;
+        }
+        if (p?.onboarding_completed) {
+          navigate({ to: "/home", replace: true });
+          return;
+        }
+        setName(p?.full_name || (userRes.user.user_metadata?.full_name ?? userRes.user.user_metadata?.name ?? ""));
+        if (p?.class) setCls(p.class as ClassLevel);
+        setChecked(true);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Something went wrong while loading your profile.");
+        setChecked(true);
       }
-      setName(p?.full_name || (userRes.user.user_metadata?.full_name ?? userRes.user.user_metadata?.name ?? ""));
-      if (p?.class) setCls(p.class as ClassLevel);
-      setChecked(true);
     })();
   }, [navigate]);
 
   const finish = async () => {
     if (!name.trim() || !cls) return;
     setBusy(true);
-    const { data: userRes } = await supabase.auth.getUser();
-    if (!userRes.user) return;
-    const { error } = await supabase
-      .from("profiles")
-      .update({ full_name: name.trim(), class: cls, onboarding_completed: true })
-      .eq("id", userRes.user.id);
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success("Profile saved.");
-    navigate({ to: "/home", replace: true });
+    try {
+      const { data: userRes, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userRes.user) {
+        toast.error("Your session expired. Please log in again.");
+        navigate({ to: "/auth", replace: true });
+        return;
+      }
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({ full_name: name.trim(), class: cls, onboarding_completed: true })
+        .eq("id", userRes.user.id)
+        .select("id")
+        .maybeSingle();
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      if (!data) {
+        // Update matched zero rows (e.g. no profile row exists yet for this account).
+        // Fall back to an upsert so onboarding can still complete.
+        const { error: upsertErr } = await supabase
+          .from("profiles")
+          .upsert({ id: userRes.user.id, full_name: name.trim(), class: cls, onboarding_completed: true });
+        if (upsertErr) {
+          toast.error(upsertErr.message);
+          return;
+        }
+      }
+      toast.success("Profile saved.");
+      navigate({ to: "/home", replace: true });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save your profile. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   if (!checked) {
