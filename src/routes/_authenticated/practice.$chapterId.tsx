@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Loader2, Clock, CheckCircle2, XCircle, ArrowRight, Trophy, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/app-header";
+import { ReportQuestionDialog } from "@/components/report-question-dialog";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/practice/$chapterId")({
@@ -26,6 +27,7 @@ function Practice() {
   const [elapsed, setElapsed] = useState(0);
   const [done, setDone] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -70,10 +72,11 @@ function Practice() {
     const isCorrect = selected === q.correct_answer;
     setAnswers((a) => [...a, { correct: isCorrect, time: elapsed }]);
     if (userId && chapter) {
-      await supabase.from("quiz_attempts").insert({
+      const { data: attempt } = await supabase.from("quiz_attempts").insert({
         user_id: userId, question_id: q.id, chapter_id: chapterId,
         subject_id: chapter.subject_id, selected_index: selected, is_correct: isCorrect, time_seconds: elapsed,
-      });
+      }).select("id").single();
+      setAttemptId(attempt?.id ?? null);
       if (isCorrect) {
         await supabase.rpc as any; // no rpc — update xp directly
         const { data: p } = await supabase.from("profiles").select("xp").eq("id", userId).maybeSingle();
@@ -87,6 +90,7 @@ function Practice() {
     setIdx(idx + 1);
     setSelected(null);
     setRevealed(false);
+    setAttemptId(null);
     setStartedAt(Date.now());
     setElapsed(0);
   };
@@ -195,6 +199,12 @@ function Practice() {
             <div className="mt-5 glass-tint rounded-2xl p-4 text-sm">
               <div className="text-[10px] uppercase tracking-widest text-primary font-semibold">Explanation</div>
               <p className="mt-1 text-foreground/90">{q.explanation}</p>
+            </div>
+          )}
+
+          {revealed && (
+            <div className="mt-4 flex justify-end">
+              <ReportQuestionDialog questionId={q.id} source="practice" quizAttemptId={attemptId} />
             </div>
           )}
 

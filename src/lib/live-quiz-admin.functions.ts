@@ -14,12 +14,21 @@ type SaveInput = {
   topics: { topic_id: string; question_count: number }[];
 };
 
+async function assertAdmin(context: any) {
+  const { data, error } = await context.supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", context.userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (error || !data) throw new Error("Forbidden");
+}
+
 export const saveBlueprint = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: SaveInput) => d)
   .handler(async ({ data, context }) => {
-    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (roleError || !isAdmin) throw new Error("Forbidden");
+    await assertAdmin(context);
     const topicSum = data.topics.reduce((s, t) => s + t.question_count, 0);
     const diffSum = data.difficulty_easy + data.difficulty_medium + data.difficulty_hard;
     if (topicSum !== data.questions_total)
@@ -97,8 +106,7 @@ export const getBlueprint = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { class_level: string; subject_id: string }) => d)
   .handler(async ({ data, context }) => {
-    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (roleError || !isAdmin) throw new Error("Forbidden");
+    await assertAdmin(context);
     const { data: bp } = await context.supabase
       .from("live_quiz_blueprints")
       .select("*")
@@ -116,8 +124,7 @@ export const getBlueprint = createServerFn({ method: "POST" })
 export const listBlueprints = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (roleError || !isAdmin) throw new Error("Forbidden");
+    await assertAdmin(context);
     const { data } = await context.supabase
       .from("live_quiz_blueprints")
       .select("*, subjects(name, slug, class_id, classes(level))")
@@ -129,8 +136,7 @@ export const listBlueprintVersions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { blueprint_id: string }) => d)
   .handler(async ({ data, context }) => {
-    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (roleError || !isAdmin) throw new Error("Forbidden");
+    await assertAdmin(context);
     const { data: versions } = await context.supabase
       .from("live_quiz_blueprint_versions")
       .select("*")
@@ -144,8 +150,7 @@ export const listBlueprintVersions = createServerFn({ method: "POST" })
 export const runSchedulerNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (roleError || !isAdmin) throw new Error("Forbidden");
+    await assertAdmin(context);
     const { runLiveQuizTick } = await import("./live-quiz-scheduler.server");
     const result = await runLiveQuizTick();
     return result;
@@ -156,8 +161,7 @@ export const adminScheduleNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { class_level: string; subject_id: string; minutes_from_now?: number }) => d)
   .handler(async ({ data, context }) => {
-    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (roleError || !isAdmin) throw new Error("Forbidden");
+    await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const when = new Date(Date.now() + (data.minutes_from_now ?? 1) * 60_000);
     // Round to minute
@@ -201,8 +205,7 @@ export const listAdminLiveQuizResults = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { class_level: string }) => d)
   .handler(async ({ data, context }) => {
-    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (roleError || !isAdmin) throw new Error("Forbidden");
+    await assertAdmin(context);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: quizzes, error: quizError } = await supabaseAdmin

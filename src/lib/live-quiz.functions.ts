@@ -111,6 +111,7 @@ export const getLiveSession = createServerFn({ method: "POST" })
     return {
       ...meta,
       questions: (lqqs ?? []).map((q: any) => ({
+        id: q.questions?.id ?? q.question_id,
         position: q.position,
         difficulty: q.difficulty,
         text: q.questions?.question ?? "",
